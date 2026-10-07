@@ -3,723 +3,792 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Support · Hackathon Demo</title>
+<title>Cosmic Mart Support · Cosmic Concierge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0f1117;
-    --surface: #181c27;
-    --surface2: #1e2336;
-    --border: #2a3050;
-    --accent: #5b8dee;
-    --accent-dim: #1e2d52;
-    --green: #3ecf8e;
-    --green-dim: #0d2e20;
-    --amber: #f5a623;
-    --amber-dim: #2e2108;
-    --red: #ef5350;
-    --red-dim: #2e1010;
-    --text: #e2e6f3;
-    --text-dim: #7b85a0;
-    --text-muted: #4a5270;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Inter', system-ui, sans-serif;
-    --r: 10px;
-    --r-sm: 6px;
+    --ink: #15202B;
+    --ink-2: #4B5867;
+    --ink-3: #8390A0;
+    --line: #E2E6EB;
+    --line-2: #EDF0F3;
+    --paper: #F4F6F8;
+    --white: #FFFFFF;
+
+    --brand: #7500C0;
+    --brand-bright: #A100FF;
+    --brand-hover: #5C0099;
+    --brand-tint: #F3E8FF;
+
+    --spec: #1D5FA8;
+    --spec-tint: #EAF2FB;
+
+    --amber: #8F5300;
+    --amber-tint: #FFF5E1;
+    --amber-line: #F0D39E;
+
+    --red: #B42318;
+    --red-tint: #FEF1EF;
+    --red-line: #F7C6C0;
+
+    --green: #11704F;
+    --green-tint: #E4F4EC;
+
+    --font: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --shadow-panel: 0 1px 2px rgba(21,32,43,.04), 0 4px 16px rgba(21,32,43,.04);
   }
 
+  html, body { height: 100%; }
   body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.5;
+    background: var(--paper);
+    color: var(--ink);
     display: flex;
     flex-direction: column;
+    -webkit-font-smoothing: antialiased;
   }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
-  /* NAV */
-  nav {
+  /* ── HEADER ─────────────────────────────── */
+  .site-header {
+    height: 64px;
+    flex-shrink: 0;
+    background: var(--white);
+    border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0 20px;
-    height: 52px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
+    padding: 0 28px;
+    gap: 36px;
   }
-  nav .logo {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    color: var(--text);
-    margin-right: 12px;
-  }
-  nav .logo span { color: var(--accent); }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+  .brand-mark { width: 28px; height: 28px; }
+  .brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.2px; }
+  .brand-name span { font-weight: 400; color: var(--ink-2); margin-left: 4px; }
+
+  .main-nav { display: flex; height: 100%; gap: 4px; }
   .tab-btn {
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-dim);
+    position: relative;
     background: none;
     border: none;
-    padding: 6px 14px;
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
-  .tab-btn:hover { background: var(--surface2); color: var(--text); }
-  .tab-btn.active { background: var(--accent-dim); color: var(--accent); }
-  nav .spacer { flex: 1; }
-  .demo-controls { display: flex; gap: 8px; }
-  .demo-btn {
-    font-family: var(--mono);
-    font-size: 11px;
+    padding: 0 14px;
+    font-size: 14px;
     font-weight: 500;
-    color: var(--text-dim);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 5px 10px;
-    border-radius: var(--r-sm);
+    color: var(--ink-2);
     cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
+    height: 100%;
+    transition: color .15s;
   }
-  .demo-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .demo-btn.danger:hover { border-color: var(--red); color: var(--red); }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--ink); font-weight: 600; }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    left: 14px; right: 14px; bottom: -1px;
+    height: 2px;
+    background: var(--brand-bright);
+    border-radius: 2px 2px 0 0;
+  }
+  .spacer { flex: 1; }
 
-  /* PAGES */
-  .page { display: none; flex: 1; overflow: hidden; }
+  .demo-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 4px 12px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+  }
+  .demo-controls .demo-label { font-size: 12px; color: var(--ink-3); margin-right: 4px; }
+  .demo-btn {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    background: var(--paper);
+    border: 1px solid transparent;
+    padding: 5px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    min-width: 92px;
+  }
+  .demo-btn:hover { background: var(--white); border-color: var(--line); color: var(--ink); }
+  .demo-btn.danger:hover { color: var(--red); border-color: var(--red-line); }
+
+  /* ── PAGES ──────────────────────────────── */
+  .page { display: none; flex: 1; min-height: 0; }
   .page.active { display: flex; }
 
-  /* ── CUSTOMER PAGE ── */
+  /* ── CUSTOMER PAGE ──────────────────────── */
   #page-customer {
-    flex-direction: column;
-    max-width: 780px;
     width: 100%;
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 32px 28px;
+    gap: 28px;
   }
 
-  /* case header strip */
-  .case-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 0 8px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-muted);
-    flex-wrap: wrap;
+  .help-aside {
+    width: 300px;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    overflow-y: auto;
   }
-  .case-ref { color: var(--text-dim); font-weight: 500; }
-  .status-pill {
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 500;
-    background: var(--surface2);
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    text-transform: lowercase;
+  .help-aside h1 {
+    font-size: 32px;
+    line-height: 1.12;
+    font-weight: 700;
+    letter-spacing: -0.8px;
   }
-  .status-pill.escalated { background: var(--amber-dim); color: var(--amber); border-color: var(--amber); }
-  .status-pill.resolved { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+  .help-aside .lede { color: var(--ink-2); font-size: 15px; margin-top: 10px; max-width: 34ch; }
 
-  /* customer selector */
-  .customer-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    flex-shrink: 0;
-  }
-  .customer-bar label { font-size: 13px; color: var(--text-dim); white-space: nowrap; }
+  .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
   .customer-bar select {
-    font-family: var(--sans);
-    font-size: 13px;
-    color: var(--text);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--r-sm);
-    padding: 6px 10px;
-    flex: 1;
-    max-width: 280px;
+    width: 100%;
+    font-size: 14px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 34px 9px 12px;
     cursor: pointer;
-    outline: none;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b85a0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234B5867' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 10px center;
-    padding-right: 28px;
+    background-position: right 12px center;
+    transition: border-color .15s;
   }
-  .customer-bar select:focus { border-color: var(--accent); }
-  .new-chat-btn {
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-dim);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 6px 12px;
-    border-radius: var(--r-sm);
-    cursor: pointer;
+  .customer-bar select:hover { border-color: #C9D0D8; }
+  .customer-bar select:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px var(--brand-tint); }
+
+  .case-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow-panel);
+  }
+  .case-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .case-card h2 { font-size: 15px; font-weight: 600; }
+  .case-ref { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .case-empty { font-size: 14px; color: var(--ink-3); margin-top: 6px; }
+
+  .status-pill {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--brand-tint);
+    color: var(--brand);
+    text-transform: capitalize;
     white-space: nowrap;
-    transition: border-color 0.15s, color 0.15s;
   }
-  .new-chat-btn:hover { border-color: var(--red); color: var(--red); }
+  .status-pill.escalated { background: var(--amber-tint); color: var(--amber); }
+  .status-pill.resolved { background: var(--green-tint); color: var(--green); }
 
-  /* escalation banner */
-  .escalation-banner {
-    display: none;
-    align-items: center;
-    gap: 10px;
-    background: var(--amber-dim);
-    border: 1px solid var(--amber);
-    border-radius: var(--r);
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--amber);
-    margin-bottom: 8px;
+  /* progress stepper: case lifecycle is a real sequence */
+  .stepper { list-style: none; margin-top: 16px; display: flex; flex-direction: column; }
+  .step { display: grid; grid-template-columns: 20px 1fr; gap: 12px; position: relative; padding-bottom: 16px; }
+  .step:last-child { padding-bottom: 0; }
+  .step::before {
+    content: '';
+    position: absolute;
+    left: 9px; top: 22px; bottom: 2px;
+    width: 2px;
+    background: var(--line);
+    border-radius: 2px;
+  }
+  .step:last-child::before { display: none; }
+  .step.done::before { background: var(--brand); }
+  .step-dot {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .25s, border-color .25s;
+  }
+  .step.done .step-dot { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .step.current .step-dot { border-color: var(--brand); box-shadow: 0 0 0 4px var(--brand-tint); }
+  .step.current .step-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+  .step-dot svg { display: none; }
+  .step.done .step-dot svg { display: block; }
+  .step-title { font-size: 14px; font-weight: 600; line-height: 20px; color: var(--ink-3); }
+  .step.done .step-title, .step.current .step-title { color: var(--ink); }
+  .step-desc { font-size: 13px; color: var(--ink-3); margin-top: 1px; }
+  .step.skipped .step-title { text-decoration: line-through; text-decoration-color: var(--ink-3); }
+
+  .conv-id { font-size: 12px; color: var(--ink-3); margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-2); word-break: break-all; font-variant-numeric: tabular-nums; }
+
+  .new-chat-btn {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--white);
+    border: 1px solid var(--line);
+    padding: 9px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: border-color .15s, background .15s;
+  }
+  .new-chat-btn:hover { border-color: #C9D0D8; background: var(--paper); }
+
+  .aside-foot { font-size: 13px; color: var(--ink-3); margin-top: auto; }
+
+  /* chat card */
+  .chat-card {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-panel);
+    overflow: hidden;
+  }
+  .chat-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--line-2);
     flex-shrink: 0;
   }
-  .escalation-banner.visible { display: flex; }
-  .escalation-banner svg { flex-shrink: 0; }
+  .chat-head-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #A100FF, #460073); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .chat-head-avatar::after {
+    content: ''; position: absolute; right: -1px; bottom: -1px;
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #22A06B; border: 2px solid var(--white);
+  }
+  .chat-head-title { font-size: 15px; font-weight: 600; }
+  .chat-head-sub { font-size: 13px; color: var(--ink-3); }
 
-  /* error bar */
-  .error-bar {
+  .notice {
     display: none;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-    background: var(--red-dim);
-    border: 1px solid var(--red);
-    border-radius: var(--r);
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--red);
-    margin-bottom: 8px;
+    margin: 14px 22px 0;
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: 14px;
     flex-shrink: 0;
   }
-  .error-bar.visible { display: flex; }
+  .notice svg { flex-shrink: 0; margin-top: 2px; }
+  .escalation-banner { background: var(--amber-tint); border: 1px solid var(--amber-line); color: var(--amber); }
+  .error-bar { background: var(--red-tint); border: 1px solid var(--red-line); color: var(--red); }
+  .notice.visible { display: flex; animation: drop .2s ease-out; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
-  /* message list */
   .msg-list {
     flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 8px 0 12px;
+    gap: 14px;
+    padding: 22px;
     scroll-behavior: smooth;
   }
-  .msg-list::-webkit-scrollbar { width: 4px; }
-  .msg-list::-webkit-scrollbar-track { background: transparent; }
-  .msg-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-  /* bubbles */
-  .bubble-row {
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
-    max-width: 100%;
+  .empty-chat {
+    margin: auto;
+    text-align: center;
+    max-width: 380px;
+    padding: 20px 0;
   }
+  .empty-chat h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .empty-chat p { font-size: 14px; color: var(--ink-2); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 18px; }
+  .chip {
+    font-size: 14px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .chip:hover { border-color: var(--brand); background: var(--brand-tint); }
+
+  .bubble-row { display: flex; gap: 10px; align-items: flex-end; max-width: 100%; }
   .bubble-row.user { flex-direction: row-reverse; }
   .bubble-row.center { justify-content: center; }
 
   .avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
-    flex-shrink: 0;
-    font-family: var(--mono);
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
   }
-  .avatar.agent { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
-  .avatar.user-av { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
-  .avatar.specialist { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+  .avatar.agent { background: var(--brand-tint); color: var(--brand); }
+  .avatar.user-av { display: none; }
+  .avatar.specialist { background: var(--spec); color: #fff; }
 
+  .bubble-inner { display: flex; flex-direction: column; max-width: min(72%, 560px); }
+  .bubble-row.user .bubble-inner { align-items: flex-end; }
+  .bubble-label { font-size: 12px; font-weight: 600; color: var(--ink-2); margin: 0 0 4px 2px; display: flex; align-items: center; gap: 6px; }
+  .role-tag { font-weight: 500; font-size: 11px; color: var(--spec); background: var(--spec-tint); padding: 1px 7px; border-radius: 999px; }
   .bubble {
-    max-width: 72%;
-    padding: 9px 13px;
-    border-radius: var(--r);
-    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 15px;
     line-height: 1.55;
     word-break: break-word;
+    white-space: pre-wrap;
   }
-  .bubble.agent-b {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-bottom-left-radius: 3px;
-  }
-  .bubble.user-b {
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    color: var(--text);
-    border-bottom-right-radius: 3px;
-  }
-  .bubble.specialist-b {
-    background: var(--green-dim);
-    border: 1px solid var(--green);
-    color: var(--text);
-    border-bottom-left-radius: 3px;
-  }
-  .bubble.pending-b {
-    background: var(--surface2);
-    border: 1px dashed var(--border);
-    color: var(--text-muted);
-    border-bottom-left-radius: 3px;
-    font-style: italic;
-  }
-  .bubble-label {
-    font-size: 10px;
-    font-family: var(--mono);
-    color: var(--text-muted);
-    margin-bottom: 3px;
-    text-transform: lowercase;
-    letter-spacing: 0.3px;
-  }
-  .bubble-inner { display: flex; flex-direction: column; }
+  .bubble.agent-b { background: var(--paper); color: var(--ink); border-bottom-left-radius: 4px; }
+  .bubble.user-b { background: var(--brand); color: #fff; border-bottom-right-radius: 4px; }
+  .bubble.specialist-b { background: var(--spec-tint); color: var(--ink); border-bottom-left-radius: 4px; }
+  .bubble.followup-b { background: var(--white); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .bubble-time { font-size: 11px; color: var(--ink-3); margin: 4px 4px 0; font-variant-numeric: tabular-nums; }
 
   .system-note {
-    font-size: 12px;
-    font-family: var(--mono);
-    color: var(--text-muted);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 4px 12px;
-    border-radius: 20px;
-    text-align: center;
-    align-self: center;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--green);
+    background: var(--green-tint);
+    padding: 6px 14px;
+    border-radius: 999px;
   }
 
-  /* typing indicator */
-  .typing-indicator {
-    display: none;
-    align-items: flex-end;
-    gap: 8px;
-    padding: 2px 0;
-  }
+  .typing-indicator { display: none; align-items: flex-end; gap: 10px; padding: 0 22px 10px; flex-shrink: 0; }
   .typing-indicator.visible { display: flex; }
-  .typing-dots {
-    display: flex;
-    gap: 4px;
-    padding: 10px 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    border-bottom-left-radius: 3px;
-  }
-  .typing-dots span {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--text-muted);
-    animation: bounce 1.2s infinite ease-in-out;
-  }
-  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-5px); background: var(--accent); }
-  }
+  .typing-dots { display: flex; gap: 4px; padding: 13px 15px; background: var(--paper); border-radius: 16px; border-bottom-left-radius: 4px; }
+  .typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); animation: bounce 1.2s infinite ease-in-out; }
+  .typing-dots span:nth-child(2) { animation-delay: .15s; }
+  .typing-dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }
 
-  /* input area */
-  .input-area {
-    padding: 10px 0 16px;
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
-    flex-shrink: 0;
+  .input-area { padding: 14px 22px 18px; border-top: 1px solid var(--line-2); flex-shrink: 0; }
+  .composer {
+    display: flex; align-items: flex-end; gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 6px 6px 6px 14px;
+    background: var(--white);
+    transition: border-color .15s, box-shadow .15s;
   }
-  .input-wrap { flex: 1; position: relative; }
+  .composer:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-tint); }
   .msg-input {
-    width: 100%;
-    font-family: var(--sans);
-    font-size: 14px;
-    color: var(--text);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    padding: 10px 44px 10px 14px;
-    resize: none;
-    min-height: 44px;
-    max-height: 140px;
+    flex: 1;
+    border: none;
     outline: none;
+    resize: none;
+    font-size: 15px;
     line-height: 1.5;
-    transition: border-color 0.15s;
+    padding: 6px 0;
+    min-height: 34px;
+    max-height: 140px;
+    background: transparent;
   }
-  .msg-input:focus { border-color: var(--accent); }
-  .msg-input::placeholder { color: var(--text-muted); }
-  .char-count {
-    position: absolute;
-    bottom: 8px;
-    right: 10px;
-    font-size: 10px;
-    font-family: var(--mono);
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-  .char-count.warn { color: var(--amber); }
-  .char-count.over { color: var(--red); }
+  .msg-input::placeholder { color: var(--ink-3); }
   .send-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--r);
-    background: var(--accent);
+    width: 38px; height: 38px;
+    border-radius: 9px;
+    background: var(--brand);
+    color: #fff;
     border: none;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    transition: opacity 0.15s, background 0.15s;
-    color: #fff;
+    transition: background .15s, opacity .15s;
   }
-  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .send-btn:not(:disabled):hover { background: #4a7ee0; }
+  .send-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .send-btn:not(:disabled):hover { background: var(--brand-hover); }
+  .composer-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); margin-top: 8px; padding: 0 2px; }
+  .char-count { font-variant-numeric: tabular-nums; }
+  .char-count.warn { color: var(--amber); }
+  .char-count.over { color: var(--red); font-weight: 600; }
 
-  /* ── SPECIALIST PAGE ── */
-  #page-specialist {
-    gap: 0;
-    height: calc(100vh - 52px);
-    overflow: hidden;
-  }
+  /* ── SPECIALIST PAGE ────────────────────── */
+  #page-specialist { min-height: 0; }
 
-  /* queue panel */
   .queue-panel {
     width: 300px;
     flex-shrink: 0;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
+    background: var(--white);
+    border-right: 1px solid var(--line);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    min-height: 0;
   }
   .panel-header {
-    padding: 14px 16px 12px;
-    border-bottom: 1px solid var(--border);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding: 20px 18px 14px;
+    display: flex; align-items: center; justify-content: space-between;
     flex-shrink: 0;
   }
-  .panel-header .count-badge {
-    font-family: var(--mono);
-    font-size: 11px;
-    background: var(--accent-dim);
-    color: var(--accent);
-    padding: 1px 7px;
-    border-radius: 20px;
-    border: 1px solid var(--accent);
+  .panel-header h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 8px; }
+  .count-badge {
+    font-size: 12px; font-weight: 600;
+    background: var(--brand-tint); color: var(--brand);
+    padding: 1px 8px; border-radius: 999px;
+    font-variant-numeric: tabular-nums;
   }
   .refresh-btn {
-    font-size: 12px;
-    color: var(--text-muted);
-    background: none;
-    border: none;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--ink-2);
     cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: color 0.15s;
+    transition: background .15s, color .15s;
   }
-  .refresh-btn:hover { color: var(--accent); }
-  .queue-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-  .queue-list::-webkit-scrollbar { width: 4px; }
-  .queue-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  .queue-item {
-    padding: 10px 12px;
-    border-radius: var(--r-sm);
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .queue-item:hover { background: var(--surface2); }
-  .queue-item.selected { background: var(--accent-dim); border-color: var(--accent); }
-  .queue-item-id { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-bottom: 3px; }
-  .queue-item-customer { font-size: 13px; color: var(--text); margin-bottom: 2px; }
-  .queue-item-time { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
-  .empty-queue { padding: 32px 16px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  .refresh-btn:hover { background: var(--paper); color: var(--ink); }
+  .refresh-btn.spinning svg { animation: spin .6s linear; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* case detail */
-  .case-detail {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  .queue-list { flex: 1; overflow-y: auto; padding: 0 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .queue-item {
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background .12s;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 8px;
   }
+  .queue-item:hover { background: var(--paper); }
+  .queue-item.selected { background: var(--brand-tint); border-color: #DDBDFF; }
+  .queue-item-customer { font-size: 14px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .queue-item-time { font-size: 12px; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .queue-item-id { font-size: 12px; color: var(--ink-2); grid-column: 1 / -1; font-variant-numeric: tabular-nums; }
+  .empty-queue { padding: 40px 18px; text-align: center; font-size: 14px; color: var(--ink-3); }
+  .empty-queue strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+
+  .case-detail { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .no-case-placeholder {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; color: var(--ink-3); font-size: 14px; text-align: center; padding: 24px;
+  }
+  .no-case-placeholder svg { color: #C2CAD3; margin-bottom: 8px; }
+  .no-case-placeholder strong { color: var(--ink); font-size: 16px; font-weight: 600; }
+
+  #case-loaded { flex: 1; min-height: 0; }
+
+  .case-main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--white); }
   .case-detail-header {
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 14px;
     flex-shrink: 0;
   }
-  .case-detail-header h2 { font-size: 14px; font-weight: 600; color: var(--text); }
-  .case-detail-header .sub { font-size: 12px; color: var(--text-muted); font-family: var(--mono); }
-  .case-detail-body {
+  .case-detail-header h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
+  .case-detail-header .sub { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+  .transcript-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 16px 20px;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .t-bubble { max-width: min(78%, 560px); font-size: 14px; line-height: 1.55; }
+  .t-bubble .t-text { padding: 9px 13px; border-radius: 14px; white-space: pre-wrap; word-break: break-word; }
+  .t-bubble.user { align-self: flex-end; }
+  .t-bubble.user .t-text { background: var(--brand); color: #fff; border-bottom-right-radius: 4px; }
+  .t-bubble.agent .t-text { background: var(--paper); border-bottom-left-radius: 4px; }
+  .t-bubble.specialist-t .t-text { background: var(--spec-tint); border-bottom-left-radius: 4px; }
+  .t-bubble-name { font-size: 12px; font-weight: 600; color: var(--ink-2); margin: 0 2px 4px; }
+  .t-bubble.user .t-bubble-name { text-align: right; }
+
+  .reply-panel {
+    border-top: 1px solid var(--line);
+    padding: 14px 24px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    flex-shrink: 0;
+    background: var(--white);
+  }
+  .reply-box { border: 1px solid var(--line); border-radius: 12px; transition: border-color .15s, box-shadow .15s; }
+  .reply-box:focus-within { border-color: var(--spec); box-shadow: 0 0 0 3px var(--spec-tint); }
+  .reply-textarea {
+    width: 100%; border: none; outline: none; resize: none;
+    padding: 12px 14px 6px;
+    font-size: 14px; line-height: 1.5;
+    min-height: 76px; background: transparent;
+    border-radius: 12px;
+  }
+  .reply-textarea::placeholder { color: var(--ink-3); }
+  .reply-toolbar { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 14px; border-top: 1px solid var(--line-2); flex-wrap: wrap; }
+  .agent-name-wrap { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+  .agent-name-input {
+    font-size: 13px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 5px 9px;
+    width: 140px;
+    outline: none;
+    background: var(--white);
+  }
+  .agent-name-input:focus { border-color: var(--spec); }
+  .close-case-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; user-select: none; }
+  .close-case-label input { accent-color: var(--green); width: 15px; height: 15px; cursor: pointer; }
+  .reply-hint { font-size: 12px; color: var(--ink-3); margin-left: auto; }
+  .reply-send-btn {
+    font-size: 14px; font-weight: 600;
+    color: #fff; background: var(--spec);
+    border: none; padding: 8px 16px; border-radius: 8px;
+    cursor: pointer; transition: opacity .15s, background .15s;
+  }
+  .reply-send-btn:hover:not(:disabled) { background: #164B85; }
+  .reply-send-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .reply-send-btn.closing { background: var(--green); }
+  .reply-send-btn.closing:hover:not(:disabled) { background: #0C5A3F; }
+
+  .case-context {
+    width: 320px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--line);
+    background: var(--paper);
+    overflow-y: auto;
+    padding: 18px;
     display: flex;
     flex-direction: column;
     gap: 14px;
   }
-  .case-detail-body::-webkit-scrollbar { width: 4px; }
-  .case-detail-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .detail-section { background: var(--white); border: 1px solid var(--line); border-radius: 12px; }
+  .detail-section-header { padding: 12px 14px 0; font-size: 14px; font-weight: 600; text-transform: capitalize; }
+  .detail-section-body { padding: 10px 14px 14px; }
 
-  .detail-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    overflow: hidden;
-  }
-  .detail-section-header {
-    padding: 8px 14px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    border-bottom: 1px solid var(--border);
-    font-family: var(--mono);
-    text-transform: lowercase;
-    background: var(--surface2);
-    letter-spacing: 0.3px;
-  }
-  .detail-section-body { padding: 12px 14px; }
-
-  .kv-grid { display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; }
-  .kv-label { font-size: 12px; color: var(--text-muted); font-family: var(--mono); }
-  .kv-value { font-size: 12px; color: var(--text); }
-
-  .transcript-scroll {
-    max-height: 280px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .transcript-scroll::-webkit-scrollbar { width: 3px; }
-  .transcript-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  .t-bubble {
-    padding: 7px 11px;
-    border-radius: 8px;
-    font-size: 12px;
-    line-height: 1.5;
-    max-width: 85%;
-  }
-  .t-bubble.user { align-self: flex-end; background: var(--accent-dim); border: 1px solid var(--accent); color: var(--text); }
-  .t-bubble.agent { align-self: flex-start; background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
-  .t-bubble.specialist-t { align-self: flex-start; background: var(--green-dim); border: 1px solid var(--green); color: var(--text); }
-  .t-bubble-name { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; font-family: var(--mono); }
+  .kv-grid { display: grid; grid-template-columns: 64px 1fr; gap: 6px 12px; }
+  .kv-label { font-size: 13px; color: var(--ink-3); }
+  .kv-value { font-size: 13px; color: var(--ink); word-break: break-word; }
 
   .frustration-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .frustration-tag {
-    font-size: 11px;
-    font-family: var(--mono);
-    padding: 3px 9px;
-    border-radius: 20px;
-    background: var(--amber-dim);
-    color: var(--amber);
-    border: 1px solid var(--amber);
-  }
+  .frustration-tag { font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: var(--amber-tint); color: var(--amber); border: 1px solid var(--amber-line); }
 
-  /* reply panel */
-  .reply-panel {
-    padding: 14px 20px;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-  .reply-panel-row { display: flex; gap: 10px; align-items: center; }
-  .agent-name-input {
-    font-family: var(--sans);
-    font-size: 13px;
-    color: var(--text);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--r-sm);
-    padding: 7px 10px;
-    width: 140px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .agent-name-input:focus { border-color: var(--green); }
-  .agent-name-input::placeholder { color: var(--text-muted); }
-  .close-case-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-dim); cursor: pointer; user-select: none; }
-  .close-case-label input { accent-color: var(--green); width: 14px; height: 14px; cursor: pointer; }
-  .reply-textarea {
-    font-family: var(--sans);
-    font-size: 13px;
-    color: var(--text);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--r-sm);
-    padding: 9px 12px;
-    resize: none;
-    min-height: 72px;
-    outline: none;
-    line-height: 1.5;
-    transition: border-color 0.15s;
-    width: 100%;
-  }
-  .reply-textarea:focus { border-color: var(--green); }
-  .reply-textarea::placeholder { color: var(--text-muted); }
-  .reply-send-btn {
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 600;
-    color: #fff;
-    background: var(--green);
-    border: none;
-    padding: 8px 18px;
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    transition: opacity 0.15s;
-    align-self: flex-end;
-  }
-  .reply-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .reply-send-btn:not(:disabled):hover { opacity: 0.85; }
+  .orders-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .orders-table th { text-align: left; font-weight: 500; color: var(--ink-3); padding: 0 0 6px; }
+  .orders-table td { padding: 7px 0; border-top: 1px solid var(--line-2); }
+  .orders-table td:last-child, .orders-table th:last-child { text-align: right; }
+  .order-status { font-size: 12px; color: var(--ink-2); text-transform: capitalize; }
 
-  .no-case-placeholder {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 10px;
-    color: var(--text-muted);
-    font-size: 14px;
-  }
-  .no-case-placeholder svg { opacity: 0.3; }
+  .action-item { padding: 8px 0; border-top: 1px solid var(--line-2); }
+  .action-item:first-child { border-top: none; padding-top: 0; }
+  .action-name { font-size: 13px; font-weight: 600; }
+  .action-args { font-size: 12px; color: var(--ink-2); margin-top: 2px; word-break: break-word; }
 
-  /* scrollbar global */
-  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .load-error { color: var(--red); font-size: 14px; padding: 24px; }
+
+  /* ── RESPONSIVE ─────────────────────────── */
+  @media (max-width: 1100px) {
+    .case-context { width: 270px; }
+  }
+  @media (max-width: 900px) {
+    .site-header { padding: 0 16px; gap: 16px; }
+    .demo-controls .demo-label { display: none; }
+    #page-customer { flex-direction: column; padding: 16px; gap: 16px; }
+    .help-aside { width: 100%; overflow: visible; }
+    .help-aside h1 { font-size: 24px; }
+    .aside-foot, .help-aside .lede { display: none; }
+    .chat-card { min-height: 520px; }
+    #page-specialist { flex-direction: column; }
+    .queue-panel { width: 100%; max-height: 240px; border-right: none; border-bottom: 1px solid var(--line); }
+    #case-loaded { flex-direction: column !important; }
+    .case-context { width: 100%; border-left: none; border-top: 1px solid var(--line); }
+  }
+  @media (max-width: 600px) {
+    .brand-name span { display: none; }
+    .tab-btn { padding: 0 8px; font-size: 13px; }
+    .tab-btn.active::after { left: 8px; right: 8px; }
+    .demo-btn { min-width: 0; padding: 5px 8px; }
+    .bubble-inner { max-width: 85%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo">support<span>.</span>demo</div>
-  <button class="tab-btn active" id="tab-customer" onclick="switchTab('customer')">Customer chat</button>
-  <button class="tab-btn" id="tab-specialist" onclick="switchTab('specialist')">Specialist queue</button>
+<header class="site-header">
+  <a class="brand" href="#" onclick="switchTab('customer');return false;" aria-label="Cosmic Mart Support home">
+    <svg class="brand-mark" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      <rect width="28" height="28" rx="8" fill="#7500C0"/>
+      <path d="M8 19.5c2-4.5 4-7 6-7s4 2.5 6 7" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="14" cy="8.5" r="2" fill="#D9A8FF"/>
+    </svg>
+    <span class="brand-name">Cosmic Mart<span>Support</span></span>
+  </a>
+  <nav class="main-nav" aria-label="Primary">
+    <button class="tab-btn active" id="tab-customer" onclick="switchTab('customer')">Help center</button>
+    <button class="tab-btn" id="tab-specialist" onclick="switchTab('specialist')">Specialist console</button>
+  </nav>
   <div class="spacer"></div>
-  <div class="demo-controls">
-    <button class="demo-btn" title="Trigger follow-ups now" onclick="runFollowUps()">▶ follow-ups</button>
-    <button class="demo-btn danger" title="Reset all data" onclick="resetAll()">⟳ reset</button>
+  <div class="demo-controls" role="group" aria-label="Demo tools">
+    <span class="demo-label">Demo</span>
+    <button class="demo-btn" title="Send any pending follow-up messages now" onclick="runFollowUps(event)">Run follow-ups</button>
+    <button class="demo-btn danger" title="Delete all conversations and cases" onclick="resetAll()">Reset data</button>
   </div>
-</nav>
+</header>
 
 <!-- CUSTOMER PAGE -->
-<div class="page active" id="page-customer">
-  <div class="case-header">
-    <span id="case-ref-display" class="case-ref" style="display:none"></span>
-    <span id="case-status-pill" class="status-pill" style="display:none"></span>
-    <span id="conv-id-display" style="display:none;font-family:var(--mono);font-size:11px;color:var(--text-muted)"></span>
-  </div>
-
-  <div class="customer-bar">
-    <label for="customer-select">Customer</label>
-    <select id="customer-select">
-      <option value="">Loading…</option>
-    </select>
-    <button class="new-chat-btn" onclick="newChat()">New chat</button>
-  </div>
-
-  <div class="escalation-banner" id="escalation-banner">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 14H1L8 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v4M8 12v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    <span id="escalation-text">A specialist has your case</span>
-  </div>
-
-  <div class="error-bar" id="error-bar">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    <span id="error-text">Something went wrong.</span>
-  </div>
-
-  <div class="msg-list" id="msg-list"></div>
-
-  <div class="typing-indicator" id="typing-indicator">
-    <div class="avatar agent">AI</div>
-    <div class="typing-dots"><span></span><span></span><span></span></div>
-  </div>
-
-  <div class="input-area">
-    <div class="input-wrap">
-      <textarea
-        class="msg-input"
-        id="msg-input"
-        placeholder="Type a message…"
-        rows="1"
-        maxlength="4000"
-        onkeydown="handleKey(event)"
-        oninput="handleInput()"
-      ></textarea>
-      <span class="char-count" id="char-count">0</span>
+<main class="page active" id="page-customer">
+  <aside class="help-aside">
+    <div>
+      <h1>How can we help today?</h1>
+      <p class="lede">Chat with Cosmic Concierge, our support assistant, any time. If your question needs a person, we'll bring in a specialist without making you start over.</p>
     </div>
-    <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15.5 9H2.5M15.5 9l-5-5M15.5 9l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-  </div>
-</div>
 
-<!-- SPECIALIST PAGE -->
-<div class="page" id="page-specialist">
-  <div class="queue-panel">
-    <div class="panel-header">
-      Open cases
-      <div style="display:flex;gap:6px;align-items:center">
-        <span class="count-badge" id="queue-count">0</span>
-        <button class="refresh-btn" onclick="loadQueue()" title="Refresh">↺</button>
+    <div class="customer-bar">
+      <label class="field-label" for="customer-select">Signed in as</label>
+      <select id="customer-select">
+        <option value="">Loading…</option>
+      </select>
+    </div>
+
+    <section class="case-card" aria-live="polite">
+      <div class="case-card-top">
+        <h2>Your case</h2>
+        <span id="case-status-pill" class="status-pill" style="display:none"></span>
+      </div>
+      <span id="case-ref-display" class="case-ref" style="display:none"></span>
+      <p class="case-empty" id="case-empty">Send a message and we'll open a case for you.</p>
+
+      <ol class="stepper" id="stepper">
+        <li class="step" data-step="1">
+          <span class="step-dot"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.2l2 2L8 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div><div class="step-title">Conversation started</div><div class="step-desc">Cosmic Concierge is on it</div></div>
+        </li>
+        <li class="step" data-step="2">
+          <span class="step-dot"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.2l2 2L8 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div><div class="step-title">With a specialist</div><div class="step-desc" id="step2-desc">Only if you need one</div></div>
+        </li>
+        <li class="step" data-step="3">
+          <span class="step-dot"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.2l2 2L8 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div><div class="step-title">Resolved</div><div class="step-desc">Case closed</div></div>
+        </li>
+      </ol>
+
+      <div class="conv-id" id="conv-id-display" style="display:none"></div>
+    </section>
+
+    <button class="new-chat-btn" onclick="newChat()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Start a new conversation
+    </button>
+
+    <p class="aside-foot">Specialists are available Monday to Friday, 8am to 8pm.</p>
+  </aside>
+
+  <section class="chat-card" aria-label="Support chat">
+    <div class="chat-head">
+      <div class="chat-head-avatar" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2.5c.5 3.6 1.9 5 5.5 5.5-3.6.5-5 1.9-5.5 5.5-.5-3.6-1.9-5-5.5-5.5 3.6-.5 5-1.9 5.5-5.5z" fill="#fff"/><path d="M15.5 12.5c.2 1.4.8 2 2.2 2.2-1.4.2-2 .8-2.2 2.2-.2-1.4-.8-2-2.2-2.2 1.4-.2 2-.8 2.2-2.2z" fill="#E4C2FF"/></svg>
+      </div>
+      <div>
+        <div class="chat-head-title">Cosmic Concierge</div>
+        <div class="chat-head-sub">Your Cosmic Mart support assistant, usually replies in seconds</div>
       </div>
     </div>
-    <div class="queue-list" id="queue-list">
-      <div class="empty-queue">No open cases</div>
-    </div>
-  </div>
 
-  <div class="case-detail" id="case-detail">
-    <div class="no-case-placeholder" id="no-case-placeholder">
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="8" width="28" height="26" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M13 16h14M13 22h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span>Select a case from the queue</span>
+    <div class="notice escalation-banner" id="escalation-banner" role="status">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 13.5c.8-2.4 2.7-3.5 5-3.5s4.2 1.1 5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span id="escalation-text">A specialist has your case</span>
     </div>
-    <div id="case-loaded" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-      <div class="case-detail-header">
-        <div>
-          <div class="case-detail-header" style="padding:0;border:none;background:transparent">
+
+    <div class="notice error-bar" id="error-bar" role="alert">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5M8 11v.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span id="error-text">Something went wrong.</span>
+    </div>
+
+    <div class="msg-list" id="msg-list" aria-live="polite"></div>
+
+    <div class="typing-indicator" id="typing-indicator" aria-label="Cosmic Concierge is typing">
+      <div class="avatar agent">CC</div>
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+    </div>
+
+    <div class="input-area">
+      <div class="composer">
+        <textarea
+          class="msg-input"
+          id="msg-input"
+          placeholder="Describe what you need help with…"
+          rows="1"
+          maxlength="4000"
+          aria-label="Message"
+          onkeydown="handleKey(event)"
+          oninput="handleInput()"
+        ></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled aria-label="Send message">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 13V3M8 3L3.5 7.5M8 3l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="composer-meta">
+        <span>Press Enter to send, Shift + Enter for a new line</span>
+        <span class="char-count" id="char-count"></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- SPECIALIST PAGE -->
+<main class="page" id="page-specialist">
+  <aside class="queue-panel">
+    <div class="panel-header">
+      <h2>Open cases <span class="count-badge" id="queue-count">0</span></h2>
+      <button class="refresh-btn" id="refresh-btn" onclick="loadQueue(true)" title="Refresh queue" aria-label="Refresh queue">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M13.5 8a5.5 5.5 0 11-1.6-3.9M13.5 2.5v3h-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="queue-list" id="queue-list">
+      <div class="empty-queue"><strong>You're all caught up</strong>New escalations will appear here.</div>
+    </div>
+  </aside>
+
+  <section class="case-detail" id="case-detail">
+    <div class="no-case-placeholder" id="no-case-placeholder">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="7" y="9" width="30" height="27" rx="5" stroke="currentColor" stroke-width="1.6"/><path d="M14 18h16M14 24h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <strong>Pick a case to get started</strong>
+      <span>You'll see the full conversation, customer details and orders here.</span>
+    </div>
+
+    <div id="case-loaded" style="display:none;flex-direction:row;flex:1;overflow:hidden">
+      <div class="case-main">
+        <div class="case-detail-header">
+          <div>
             <h2 id="cd-title">Case</h2>
             <span class="sub" id="cd-sub"></span>
           </div>
         </div>
-      </div>
-      <div class="case-detail-body" id="cd-body"></div>
-      <div class="reply-panel" id="reply-panel">
-        <div class="reply-panel-row">
-          <input class="agent-name-input" id="agent-name" placeholder="Your name" />
-          <label class="close-case-label">
-            <input type="checkbox" id="close-case-check" />
-            Close case
-          </label>
+
+        <div class="transcript-scroll" id="cd-transcript"></div>
+
+        <div class="reply-panel" id="reply-panel">
+          <div class="reply-box">
+            <textarea class="reply-textarea" id="reply-text" placeholder="Write a reply to the customer…" rows="3" aria-label="Reply to customer" onkeydown="handleReplyKey(event)"></textarea>
+            <div class="reply-toolbar">
+              <label class="agent-name-wrap">Signed as
+                <input class="agent-name-input" id="agent-name" placeholder="Your name" />
+              </label>
+              <label class="close-case-label">
+                <input type="checkbox" id="close-case-check" onchange="updateReplyBtn()" />
+                Close case after sending
+              </label>
+              <span class="reply-hint">Ctrl + Enter to send</span>
+              <button class="reply-send-btn" id="reply-send-btn" onclick="sendReply()">Send reply</button>
+            </div>
+          </div>
         </div>
-        <textarea class="reply-textarea" id="reply-text" placeholder="Reply to customer…" rows="3"></textarea>
-        <button class="reply-send-btn" id="reply-send-btn" onclick="sendReply()">Send reply</button>
       </div>
+
+      <aside class="case-context" id="cd-body" aria-label="Case details"></aside>
     </div>
-  </div>
-</div>
+  </section>
+</main>
 
 <script>
 const API = "http://127.0.0.1:8000";
@@ -728,8 +797,12 @@ let lastId = 0;
 const seen = new Set();
 let sending = false;
 let pollTimer = null;
+let queueTimer = null;
 let selectedCustomerId = null;
 let selectedHandoffId = null;
+let wasEscalated = false;
+
+const SUGGESTIONS = ["Where is my order?", "I want to return an item", "I was charged twice", "Change my shipping address"];
 
 // ─── TAB SWITCHING ────────────────────────────────────────
 function switchTab(tab) {
@@ -737,28 +810,34 @@ function switchTab(tab) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   document.getElementById('page-' + tab).classList.add('active');
-  if (tab === 'specialist') loadQueue();
+  if (queueTimer) { clearInterval(queueTimer); queueTimer = null; }
+  if (tab === 'specialist') {
+    loadQueue();
+    queueTimer = setInterval(() => loadQueue(), 10000);
+  }
 }
 
 // ─── CUSTOMERS DROPDOWN ───────────────────────────────────
 async function loadCustomers() {
+  const sel = document.getElementById('customer-select');
   try {
     const res = await fetch(`${API}/customers`);
     if (!res.ok) throw new Error();
     const data = await res.json();
-    const sel = document.getElementById('customer-select');
-    sel.innerHTML = '<option value="">— no customer id —</option>';
+    sel.innerHTML = '<option value="">Guest (no account)</option>';
     const customers = Array.isArray(data) ? data : (data.customers || []);
     customers.forEach(c => {
       const id = c.customer_id || c.id || c;
       const name = c.name || c.customer_name || id;
-      sel.innerHTML += `<option value="${id}">${id} · ${name}</option>`;
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = name === id ? id : `${name} (${id})`;
+      sel.appendChild(opt);
     });
     sel.onchange = () => { selectedCustomerId = sel.value || null; };
     selectedCustomerId = sel.value || null;
   } catch {
-    const sel = document.getElementById('customer-select');
-    sel.innerHTML = '<option value="">Unable to load customers</option>';
+    sel.innerHTML = '<option value="">Customer list unavailable</option>';
   }
 }
 
@@ -787,12 +866,11 @@ async function sendMessage() {
       body: JSON.stringify(body),
     });
     document.getElementById('typing-indicator').classList.remove('visible');
-    if (!res.ok) { sending = false; document.getElementById('send-btn').disabled = false; showError(res.status); return; }
+    if (!res.ok) { sending = false; handleInput(); showError(res.status); return; }
     const data = await res.json();
     conversationId = data.conversation_id;
     localStorage.setItem('conversationId', conversationId);
-    document.getElementById('conv-id-display').style.display = '';
-    document.getElementById('conv-id-display').textContent = conversationId;
+    showConvId();
     await poll();
     updateHeader(data.case_ref, data.case_status, data.escalated, data.handoff_id);
   } catch {
@@ -801,7 +879,7 @@ async function sendMessage() {
   }
 
   sending = false;
-  document.getElementById('send-btn').disabled = false;
+  handleInput();
 }
 
 // ─── POLL ─────────────────────────────────────────────────
@@ -830,16 +908,45 @@ function startPolling() {
   pollTimer = setInterval(() => { if (!sending) poll(); }, 4000);
 }
 
+// ─── EMPTY STATE ──────────────────────────────────────────
+function renderEmptyState() {
+  const list = document.getElementById('msg-list');
+  list.innerHTML = `
+    <div class="empty-chat" id="empty-chat">
+      <h3>Hi, I'm Cosmic Concierge</h3>
+      <p>Orders, returns, billing or your account. Here are a few common questions to get you started.</p>
+      <div class="chips">${SUGGESTIONS.map(s => `<button class="chip" type="button">${escHtml(s)}</button>`).join('')}</div>
+    </div>`;
+  list.querySelectorAll('.chip').forEach(chip => {
+    chip.onclick = () => {
+      const input = document.getElementById('msg-input');
+      input.value = chip.textContent;
+      handleInput();
+      input.focus();
+    };
+  });
+}
+
 // ─── RENDER MESSAGE ───────────────────────────────────────
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return isNaN(d) ? '' : d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
 function renderMessage(m) {
   const list = document.getElementById('msg-list');
+  document.getElementById('empty-chat')?.remove();
   const { role, kind, content, message_id } = m;
+  const time = formatTime(m.created_at || m.timestamp);
 
   if (role === 'system' && kind === 'auto_resolve') {
     const el = document.createElement('div');
     el.className = 'bubble-row center';
     el.dataset.msgId = message_id;
-    el.innerHTML = `<div class="system-note">✓ ${content || 'Case closed'}</div>`;
+    el.innerHTML = `<div class="system-note">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7.3l2.6 2.6L11 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      ${escHtml(content || 'Case closed')}</div>`;
     list.appendChild(el);
     scrollBottom();
     return;
@@ -848,45 +955,48 @@ function renderMessage(m) {
   const isUser = role === 'user';
   const isSpecialist = role === 'human_agent';
 
-  let senderLabel = '';
+  let labelHtml = '';
   let bubbleClass = 'agent-b';
   let avatarClass = 'agent';
-  let avatarText = 'AI';
+  let avatarText = 'CC';
   let displayContent = content || '';
 
   if (isUser) {
     bubbleClass = 'user-b';
     avatarClass = 'user-av';
-    avatarText = 'You';
+    avatarText = '';
   } else if (isSpecialist) {
     bubbleClass = 'specialist-b';
     avatarClass = 'specialist';
+    let name = 'Specialist';
     const colonIdx = displayContent.indexOf(': ');
     if (colonIdx > -1) {
-      senderLabel = displayContent.substring(0, colonIdx);
+      name = displayContent.substring(0, colonIdx);
       displayContent = displayContent.substring(colonIdx + 2);
-      avatarText = senderLabel.substring(0, 2).toUpperCase();
-    } else {
-      avatarText = 'SP';
     }
+    avatarText = initials(name) || 'SP';
+    labelHtml = `<div class="bubble-label">${escHtml(name)} <span class="role-tag">Specialist</span></div>`;
   } else if (kind === 'follow_up') {
-    senderLabel = 'Follow-up';
+    bubbleClass = 'followup-b';
+    labelHtml = `<div class="bubble-label">Checking in</div>`;
   }
 
   const row = document.createElement('div');
   row.className = `bubble-row${isUser ? ' user' : ''}`;
   row.dataset.msgId = message_id;
-
-  const inner = `
-    <div class="avatar ${avatarClass}">${avatarText}</div>
+  row.innerHTML = `
+    <div class="avatar ${avatarClass}" aria-hidden="true">${escHtml(avatarText)}</div>
     <div class="bubble-inner">
-      ${senderLabel ? `<div class="bubble-label">${escHtml(senderLabel)}</div>` : ''}
+      ${labelHtml}
       <div class="bubble ${bubbleClass}">${escHtml(displayContent)}</div>
+      ${time ? `<div class="bubble-time">${escHtml(time)}</div>` : ''}
     </div>`;
-
-  row.innerHTML = isUser ? inner.replace('bubble-inner', 'bubble-inner') : inner;
   list.appendChild(row);
   scrollBottom();
+}
+
+function initials(name) {
+  return String(name).trim().split(/\s+/).map(p => p[0]).join('').substring(0, 2).toUpperCase();
 }
 
 function scrollBottom() {
@@ -894,43 +1004,83 @@ function scrollBottom() {
   list.scrollTop = list.scrollHeight;
 }
 
-// ─── HEADER UPDATE ────────────────────────────────────────
+// ─── HEADER / CASE CARD UPDATE ────────────────────────────
 function updateHeader(caseRef, caseStatus, escalated, handoffId) {
   const refEl = document.getElementById('case-ref-display');
   const pillEl = document.getElementById('case-status-pill');
   const banner = document.getElementById('escalation-banner');
 
   if (caseRef) {
-    refEl.textContent = caseRef;
+    refEl.textContent = `Reference ${caseRef}`;
     refEl.style.display = '';
+    document.getElementById('case-empty').style.display = 'none';
   }
   if (caseStatus) {
+    const resolved = caseStatus === 'resolved' || caseStatus === 'closed';
     pillEl.textContent = caseStatus;
     pillEl.style.display = '';
-    pillEl.className = 'status-pill' + (caseStatus === 'escalated' ? ' escalated' : (caseStatus === 'resolved' ? ' resolved' : ''));
+    pillEl.className = 'status-pill' + (caseStatus === 'escalated' ? ' escalated' : (resolved ? ' resolved' : ''));
+    document.getElementById('case-empty').style.display = 'none';
+    updateStepper(caseStatus);
   }
   if (escalated && handoffId) {
     banner.classList.add('visible');
-    document.getElementById('escalation-text').textContent = `A specialist has your case (ref ${handoffId})`;
+    document.getElementById('escalation-text').textContent = `A specialist has joined your case (ref ${handoffId}). They'll reply right here.`;
   } else if (!escalated) {
     banner.classList.remove('visible');
   }
 }
 
+function updateStepper(status) {
+  const resolved = status === 'resolved' || status === 'closed';
+  if (status === 'escalated') wasEscalated = true;
+  const steps = document.querySelectorAll('#stepper .step');
+  steps.forEach(s => s.classList.remove('done', 'current', 'skipped'));
+  const desc2 = document.getElementById('step2-desc');
+  desc2.textContent = 'Only if you need one';
+
+  if (resolved) {
+    steps[0].classList.add('done');
+    if (wasEscalated) { steps[1].classList.add('done'); desc2.textContent = 'A specialist helped'; }
+    else { steps[1].classList.add('skipped'); desc2.textContent = 'Not needed'; }
+    steps[2].classList.add('done');
+  } else if (status === 'escalated') {
+    steps[0].classList.add('done');
+    steps[1].classList.add('current');
+    desc2.textContent = 'A person is reviewing your case';
+  } else {
+    steps[0].classList.add('current');
+  }
+}
+
+function resetStepper() {
+  wasEscalated = false;
+  document.querySelectorAll('#stepper .step').forEach(s => s.classList.remove('done', 'current', 'skipped'));
+  document.getElementById('step2-desc').textContent = 'Only if you need one';
+}
+
+function showConvId() {
+  const el = document.getElementById('conv-id-display');
+  el.style.display = '';
+  el.textContent = `Conversation ${conversationId}`;
+}
+
 // ─── ERRORS ───────────────────────────────────────────────
+let errorTimer = null;
 function showError(status) {
   const bar = document.getElementById('error-bar');
   const txt = document.getElementById('error-text');
   const msgs = {
-    503: "Sorry, we're having trouble reaching the server. Please try again.",
-    409: "This conversation belongs to a different customer. Starting a new chat.",
-    422: "Message is empty or too long (max 4,000 characters).",
-    404: "Conversation not found. Starting a new chat.",
+    503: "We couldn't reach the support server. Check your connection and try again.",
+    409: "This conversation belongs to a different customer, so we've started a new one.",
+    422: "Messages must be between 1 and 4,000 characters.",
+    404: "That conversation no longer exists, so we've started a new one.",
   };
-  txt.textContent = msgs[status] || `Unexpected error (${status}). Please try again.`;
+  txt.textContent = msgs[status] || `The server returned an error (${status}). Try sending again.`;
   bar.classList.add('visible');
   if (status === 409 || status === 404) clearConversation();
-  setTimeout(() => bar.classList.remove('visible'), 6000);
+  clearTimeout(errorTimer);
+  errorTimer = setTimeout(() => bar.classList.remove('visible'), 6000);
 }
 function hideError() { document.getElementById('error-bar').classList.remove('visible'); }
 
@@ -942,12 +1092,15 @@ function clearConversation() {
   document.getElementById('conv-id-display').style.display = 'none';
   document.getElementById('case-ref-display').style.display = 'none';
   document.getElementById('case-status-pill').style.display = 'none';
+  document.getElementById('case-empty').style.display = '';
   document.getElementById('escalation-banner').classList.remove('visible');
+  resetStepper();
 }
 
 function newChat() {
   clearConversation();
-  document.getElementById('msg-list').innerHTML = '';
+  renderEmptyState();
+  document.getElementById('msg-input').focus();
 }
 
 // ─── INPUT HELPERS ────────────────────────────────────────
@@ -958,17 +1111,31 @@ function handleInput() {
   const input = document.getElementById('msg-input');
   const count = document.getElementById('char-count');
   const len = input.value.length;
-  count.textContent = len > 0 ? len : '';
+  count.textContent = len > 3000 ? `${len.toLocaleString()} / 4,000` : '';
   count.className = 'char-count' + (len > 3800 ? (len > 4000 ? ' over' : ' warn') : '');
-  document.getElementById('send-btn').disabled = len === 0 || len > 4000;
+  document.getElementById('send-btn').disabled = sending || input.value.trim().length === 0 || len > 4000;
   input.style.height = 'auto';
   input.style.height = Math.min(input.scrollHeight, 140) + 'px';
 }
 
 // ─── SPECIALIST QUEUE ─────────────────────────────────────
-async function loadQueue() {
+function relativeTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d)) return '';
+  const mins = Math.round((Date.now() - d) / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs} hr ago`;
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+async function loadQueue(manual) {
   const list = document.getElementById('queue-list');
   const countBadge = document.getElementById('queue-count');
+  const btn = document.getElementById('refresh-btn');
+  if (manual) { btn.classList.remove('spinning'); void btn.offsetWidth; btn.classList.add('spinning'); }
   try {
     const res = await fetch(`${API}/handoffs?status=open`);
     if (!res.ok) throw new Error();
@@ -976,120 +1143,147 @@ async function loadQueue() {
     const handoffs = Array.isArray(data) ? data : (data.handoffs || []);
     countBadge.textContent = handoffs.length;
     if (handoffs.length === 0) {
-      list.innerHTML = '<div class="empty-queue">No open cases right now.</div>';
+      list.innerHTML = '<div class="empty-queue"><strong>You\'re all caught up</strong>New escalations will appear here.</div>';
       return;
     }
     list.innerHTML = '';
     handoffs.forEach(h => {
+      const id = h.handoff_id || h.id || '';
       const item = document.createElement('div');
-      item.className = 'queue-item' + (h.handoff_id === selectedHandoffId ? ' selected' : '');
-      item.onclick = () => loadCase(h.handoff_id);
+      item.className = 'queue-item' + (id === selectedHandoffId ? ' selected' : '');
+      item.tabIndex = 0;
+      item.setAttribute('role', 'button');
+      item.dataset.handoffId = id;
+      item.onclick = () => loadCase(id);
+      item.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); loadCase(id); } };
       item.innerHTML = `
-        <div class="queue-item-id">${escHtml(h.handoff_id || h.id || '')}</div>
-        <div class="queue-item-customer">${escHtml(h.customer_name || h.customer_id || 'Unknown customer')}</div>
-        <div class="queue-item-time">${h.created_at ? new Date(h.created_at).toLocaleTimeString() : ''}</div>`;
+        <div class="queue-item-customer">${escHtml(h.customer_name || h.customer_id || 'Guest customer')}</div>
+        <div class="queue-item-time" title="${escHtml(h.created_at ? new Date(h.created_at).toLocaleString() : '')}">${escHtml(relativeTime(h.created_at))}</div>
+        <div class="queue-item-id">${escHtml(id)}</div>`;
       list.appendChild(item);
     });
   } catch {
-    list.innerHTML = '<div class="empty-queue">Could not reach server.</div>';
+    list.innerHTML = '<div class="empty-queue"><strong>Queue unavailable</strong>We couldn\'t reach the server. Use refresh to try again.</div>';
   }
 }
 
 async function loadCase(handoffId) {
   selectedHandoffId = handoffId;
-  document.querySelectorAll('.queue-item').forEach(el => el.classList.remove('selected'));
   document.querySelectorAll('.queue-item').forEach(el => {
-    if (el.querySelector('.queue-item-id')?.textContent === handoffId) el.classList.add('selected');
+    el.classList.toggle('selected', el.dataset.handoffId === handoffId);
   });
 
   document.getElementById('no-case-placeholder').style.display = 'none';
-  const loaded = document.getElementById('case-loaded');
-  loaded.style.display = 'flex';
+  document.getElementById('case-loaded').style.display = 'flex';
+  updateReplyBtn();
+
+  const body = document.getElementById('cd-body');
+  const transcript = document.getElementById('cd-transcript');
 
   try {
     const res = await fetch(`${API}/handoffs/${handoffId}`);
     if (!res.ok) throw new Error();
     const d = await res.json();
 
-    document.getElementById('cd-title').textContent = d.handoff_id || handoffId;
-    document.getElementById('cd-sub').textContent = [d.case_ref, d.case_status].filter(Boolean).join(' · ');
+    const customerName = d.customer?.name;
+    document.getElementById('cd-title').textContent = customerName || d.handoff_id || handoffId;
+    document.getElementById('cd-sub').textContent =
+      [d.handoff_id || handoffId, d.case_ref && `Case ${d.case_ref}`, d.case_status && cap(d.case_status)].filter(Boolean).join(', ');
 
-    const body = document.getElementById('cd-body');
     body.innerHTML = '';
 
-    // Customer info
     if (d.customer) {
-      body.appendChild(makeSection('customer', `
+      body.appendChild(makeSection('Customer', `
         <div class="kv-grid">
-          ${kv('ID', d.customer.customer_id || '')}
           ${kv('Name', d.customer.name || '')}
+          ${kv('ID', d.customer.customer_id || '')}
           ${kv('Email', d.customer.email || '')}
         </div>`));
     }
 
-    // Frustration signals
     if (d.frustration_signals?.length) {
-      body.appendChild(makeSection('frustration signals', `
+      body.appendChild(makeSection('Frustration signals', `
         <div class="frustration-tags">
           ${d.frustration_signals.map(s => `<span class="frustration-tag">${escHtml(s)}</span>`).join('')}
         </div>`));
     }
 
-    // Agent actions
-    if (d.agent_actions?.length) {
-      const rows = d.agent_actions.map(a =>
-        `<div style="font-size:12px;color:var(--text-dim);padding:3px 0;border-bottom:1px solid var(--border);font-family:var(--mono)">${escHtml(JSON.stringify(a))}</div>`
-      ).join('');
-      body.appendChild(makeSection('agent actions', rows));
-    }
-
-    // Orders
     if (d.orders?.length) {
-      const rows = d.orders.map(o =>
-        `<div class="kv-grid" style="margin-bottom:8px">
-          ${kv('Order', o.order_id || '')}
-          ${kv('Status', o.status || '')}
-          ${kv('Total', o.total ? `$${o.total}` : '')}
-        </div>`
-      ).join('<hr style="border-color:var(--border);margin:6px 0">');
-      body.appendChild(makeSection('orders', rows));
+      const rows = d.orders.map(o => `
+        <tr>
+          <td>${escHtml(o.order_id || '')}</td>
+          <td class="order-status">${escHtml(o.status || '')}</td>
+          <td>${o.total ? '$' + escHtml(o.total) : ''}</td>
+        </tr>`).join('');
+      body.appendChild(makeSection('Orders', `
+        <table class="orders-table">
+          <thead><tr><th>Order</th><th>Status</th><th>Total</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`));
     }
 
-    // Transcript
+    if (d.agent_actions?.length) {
+      const rows = d.agent_actions.map(a => {
+        if (a && typeof a === 'object') {
+          const name = a.tool || a.action || a.name || a.type || 'Action';
+          const rest = { ...a };
+          delete rest.tool; delete rest.action; delete rest.name; delete rest.type;
+          const args = Object.entries(rest).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', ');
+          return `<div class="action-item"><div class="action-name">${escHtml(name)}</div>${args ? `<div class="action-args">${escHtml(args)}</div>` : ''}</div>`;
+        }
+        return `<div class="action-item"><div class="action-name">${escHtml(a)}</div></div>`;
+      }).join('');
+      body.appendChild(makeSection('Cosmic Concierge actions', rows));
+    }
+
     const msgs = d.live_transcript || d.transcript || d.messages || [];
     if (msgs.length) {
-      const bubbles = msgs.map(m => {
+      transcript.innerHTML = msgs.map(m => {
         const isUser = m.role === 'user';
         const isSpec = m.role === 'human_agent';
-        let cls = isUser ? 'user' : (isSpec ? 'specialist-t' : 'agent');
-        let name = isUser ? 'Customer' : (isSpec ? (m.content?.split(': ')[0] || 'Specialist') : 'Agent');
-        let text = isSpec && m.content?.includes(': ') ? m.content.split(': ').slice(1).join(': ') : (m.content || '');
-        return `<div class="t-bubble ${cls}"><div class="t-bubble-name">${escHtml(name)}</div>${escHtml(text)}</div>`;
+        const cls = isUser ? 'user' : (isSpec ? 'specialist-t' : 'agent');
+        const name = isUser ? (customerName || 'Customer') : (isSpec ? (m.content?.split(': ')[0] || 'Specialist') : 'Cosmic Concierge');
+        const text = isSpec && m.content?.includes(': ') ? m.content.split(': ').slice(1).join(': ') : (m.content || '');
+        return `<div class="t-bubble ${cls}"><div class="t-bubble-name">${escHtml(name)}</div><div class="t-text">${escHtml(text)}</div></div>`;
       }).join('');
-      body.appendChild(makeSection('transcript', `<div class="transcript-scroll">${bubbles}</div>`));
+      transcript.scrollTop = transcript.scrollHeight;
+    } else {
+      transcript.innerHTML = '<div class="no-case-placeholder"><span>No messages in this case yet.</span></div>';
     }
   } catch {
-    document.getElementById('cd-body').innerHTML = '<div style="color:var(--red);font-size:13px;padding:8px">Could not load case.</div>';
+    body.innerHTML = '';
+    transcript.innerHTML = '<div class="load-error">This case couldn\'t be loaded. Select it again to retry.</div>';
   }
 }
 
 function makeSection(title, bodyHTML) {
-  const s = document.createElement('div');
+  const s = document.createElement('section');
   s.className = 'detail-section';
   s.innerHTML = `<div class="detail-section-header">${escHtml(title)}</div><div class="detail-section-body">${bodyHTML}</div>`;
   return s;
 }
 function kv(label, value) {
-  return `<span class="kv-label">${escHtml(label)}</span><span class="kv-value">${escHtml(value)}</span>`;
+  return `<span class="kv-label">${escHtml(label)}</span><span class="kv-value">${escHtml(value || '–')}</span>`;
 }
+function cap(s) { return String(s).charAt(0).toUpperCase() + String(s).slice(1); }
 
 // ─── SPECIALIST REPLY ─────────────────────────────────────
+function updateReplyBtn() {
+  const closing = document.getElementById('close-case-check').checked;
+  const btn = document.getElementById('reply-send-btn');
+  btn.textContent = closing ? 'Send and close case' : 'Send reply';
+  btn.classList.toggle('closing', closing);
+}
+function handleReplyKey(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendReply(); }
+}
+
 async function sendReply() {
   if (!selectedHandoffId) return;
   const agentName = document.getElementById('agent-name').value.trim() || 'Agent';
   const message = document.getElementById('reply-text').value.trim();
   const closeCase = document.getElementById('close-case-check').checked;
-  if (!message) return;
+  if (!message) { document.getElementById('reply-text').focus(); return; }
 
   const btn = document.getElementById('reply-send-btn');
   btn.disabled = true;
@@ -1102,6 +1296,7 @@ async function sendReply() {
     if (res.ok) {
       document.getElementById('reply-text').value = '';
       document.getElementById('close-case-check').checked = false;
+      updateReplyBtn();
       await loadQueue();
       if (closeCase) {
         document.getElementById('no-case-placeholder').style.display = '';
@@ -1116,22 +1311,24 @@ async function sendReply() {
 }
 
 // ─── DEMO CONTROLS ────────────────────────────────────────
-async function runFollowUps() {
-  const btn = event.target;
-  btn.textContent = '…';
+async function runFollowUps(e) {
+  const btn = e.currentTarget;
+  btn.textContent = 'Running…';
   try {
     const res = await fetch(`${API}/follow-ups/run?force=true`, { method: 'POST' });
-    btn.textContent = res.ok ? '✓ done' : '✗ failed';
-  } catch { btn.textContent = '✗ error'; }
-  setTimeout(() => btn.textContent = '▶ follow-ups', 2000);
+    btn.textContent = res.ok ? 'Sent' : 'Failed';
+  } catch { btn.textContent = 'Failed'; }
+  setTimeout(() => btn.textContent = 'Run follow-ups', 2000);
 }
 
 async function resetAll() {
-  if (!confirm('Reset all conversations and cases?')) return;
+  if (!confirm('Reset all conversations and cases? This can\'t be undone.')) return;
   try {
     await fetch(`${API}/admin/reset`, { method: 'POST' });
     newChat();
-    document.getElementById('msg-list').innerHTML = '';
+    selectedHandoffId = null;
+    document.getElementById('no-case-placeholder').style.display = '';
+    document.getElementById('case-loaded').style.display = 'none';
     loadQueue();
   } catch {}
 }
@@ -1142,11 +1339,11 @@ function escHtml(s) {
 }
 
 // ─── INIT ─────────────────────────────────────────────────
+renderEmptyState();
 loadCustomers();
 startPolling();
 if (conversationId) {
-  document.getElementById('conv-id-display').style.display = '';
-  document.getElementById('conv-id-display').textContent = conversationId;
+  showConvId();
   poll();
 }
 </script>
