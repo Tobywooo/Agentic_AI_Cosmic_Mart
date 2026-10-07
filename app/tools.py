@@ -239,7 +239,7 @@ def approve_return(ctx, data, case, args):
     }
     case["approved_total"] = money(case.get("approved_total", 0.0) + amount)
     case.setdefault("return_ids", []).append(return_id)
-    return {"return_id": return_id, "amount": amount, "status": "approved",
+    return {"return_id": return_id, "order_id": order["order_id"], "amount": amount, "status": "approved",
             "next_step": "Offer pickup slots with get_pickup_slots."}
 
 
@@ -363,6 +363,7 @@ def create_handoff(ctx: ToolContext, data: dict, case: dict, *, reason: str, sum
         "actions_taken": list(case.get("actions", [])),
         "transcript": [{k: r[k] for k in ("timestamp", "role", "tool_name", "content")}
                        for r in ctx.memory.history(case["conversation_id"])],
+        "previous_handoff_ids": list(case.get("past_handoff_ids", [])),
         "human_replies": [],
     }
     case["handoff_id"] = handoff_id
@@ -389,7 +390,8 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
     Tool("get_order_details", "Full details of one order, including existing returns.",
          {"order_id": "string"}, ("order_id",), get_order_details),
     Tool("check_return_eligibility", "Check which items can be returned, the refund value and whether it is within your authority.",
-         {"order_id": "string", "items": "optional list of {item_id, quantity}; omit for all items"},
+         {"order_id": "string",
+          "items": "optional list of {item_id, quantity}; pass only the items the customer wants to return, omit for all"},
          ("order_id",), check_return_eligibility),
     Tool("approve_return", "Approve a return (creates an RMA). Only after the customer confirms which items.",
          {"order_id": "string", "items": "optional list of {item_id, quantity}; omit for all items",

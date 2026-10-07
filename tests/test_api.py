@@ -28,6 +28,11 @@ def test_chat_handoff_and_human_reply(settings):
 
         convo = client.get(f"/conversations/{body['conversation_id']}").json()
         assert [m["role"] for m in convo["messages"]] == ["user", "assistant", "human_agent"]
+        assert convo["messages"][1]["message_id"] == body["message_id"]
+
+        # Polling with after=<reply's message_id> returns only what arrived since.
+        new = client.get(f"/conversations/{body['conversation_id']}", params={"after": body["message_id"]}).json()
+        assert [m["content"] for m in new["messages"]] == ["Sam: Hi Dev, I'm on it."]
 
         assert client.post("/chat", json={"message": "hi", "conversation_id": body["conversation_id"],
                                           "customer_id": "C001"}).status_code == 409

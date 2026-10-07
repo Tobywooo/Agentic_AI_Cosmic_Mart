@@ -48,6 +48,7 @@ class TurnResult:
     conversation_id: str
     case_ref: str
     reply: str
+    message_id: int
     case_status: str
     escalated: bool
     handoff_id: str | None
@@ -99,6 +100,7 @@ class ResolutionAgent:
         actions: list[dict] = []
         reply: str | None = None
         format_retries = 0
+        over_limit: dict[str, str] = {}  # order_id -> why, from the latest eligibility check of that order
 
         for _ in range(self.settings.max_agent_steps):
             raw = self.llm.complete(messages)
@@ -122,6 +124,7 @@ class ResolutionAgent:
                       tool_name=step.action)
             if observation.get("requires_human") and not must_escalate:
                 must_escalate = f"Agent reached a limit: {observation.get('error')}"
+            self._track_authority(step.action, observation, over_limit)
             messages += [
                 {"role": "assistant", "content": json.dumps(
                     {"thought": step.thought, "action": step.action, "action_input": step.action_input},
@@ -133,6 +136,9 @@ class ResolutionAgent:
         else:
             if not already_escalated and not must_escalate:
                 must_escalate = "Agent could not complete the request within its step limit."
+
+        if over_limit and not must_escalate and not already_escalated:
+            must_escalate = "Agent reached a limit: " + " ".join(over_limit.values())
 
         with self.store.read() as data:
             case = data["cases"][conversation_id]
@@ -149,12 +155,13 @@ class ResolutionAgent:
             case = data["cases"][conversation_id]
             case["last_reply_at"] = iso(utcnow())
             case = dict(case)
-        self._log(conversation_id, "assistant", reply)
+        reply_row = self._log(conversation_id, "assistant", reply)
 
         return TurnResult(
             conversation_id=conversation_id,
             case_ref=case["case_ref"],
             reply=reply,
+            message_id=reply_row["row_id"],
             case_status=case["status"],
             escalated=case["status"] == "escalated",
             handoff_id=case.get("handoff_id"),
@@ -193,7 +200,29 @@ class ResolutionAgent:
                 case["customer_id"] = customer_id
             if case["status"] == "resolved":  # customer came back: reopen
                 case["status"] = "open"
+                if case.get("handoff_id"):  # that handoff is finished; allow a fresh one for the new issue
+                    case.setdefault("past_handoff_ids", []).append(case["handoff_id"])
+                    case["handoff_id"] = None
             return dict(case)
+
+    @staticmethod
+    def _track_authority(tool: str, observation: dict, over_limit: dict[str, str]) -> None:
+        """Remember orders whose latest eligibility check came out above the agent's authority.
+
+        A later check of the same order that fits (e.g. fewer items), or a successful approval,
+        clears it, so returning only the cheaper item of an order does not trigger a handoff.
+        """
+        order_id = observation.get("order_id")
+        if not observation.get("ok") or not order_id:
+            return
+        if tool == "check_return_eligibility":
+            if observation["eligible_refund_total"] > 0 and not observation["within_authority"]:
+                over_limit[order_id] = (f"Refund of {observation['eligible_refund_total']} for order {order_id} "
+                                        f"exceeds remaining authority of {observation['agent_remaining_authority']}.")
+            else:
+                over_limit.pop(order_id, None)
+        elif tool == "approve_return":
+            over_limit.pop(order_id, None)
 
     def _record_frustration(self, conversation_id: str, result: FrustrationResult) -> None:
         with self.store.transaction() as data:
@@ -244,8 +273,8 @@ class ResolutionAgent:
             messages.append({"role": role, "content": format_final(text) if role == "assistant" else text})
         return messages
 
-    def _log(self, conversation_id: str, role: str, content: str, tool_name: str | None = None) -> None:
+    def _log(self, conversation_id: str, role: str, content: str, tool_name: str | None = None) -> dict:
         with self.store.read() as data:
             case = data["cases"][conversation_id]
-        self.memory.append(conversation_id, role, content, customer_id=case.get("customer_id"),
+        return self.memory.append(conversation_id, role, content, customer_id=case.get("customer_id"),
                            tool_name=tool_name, case_status=case["status"])
