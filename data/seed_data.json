@@ -1,0 +1,138 @@
+{
+  "customers": [
+    {
+      "customer_id": "C001",
+      "name": "Alice Tan",
+      "email": "alice.tan@example.com",
+      "phone": "+1 555 0101",
+      "address": "12 Orbit Lane, Apt 5, Springfield, 10001",
+      "tier": "gold"
+    },
+    {
+      "customer_id": "C002",
+      "name": "Ben Ortiz",
+      "email": "ben.ortiz@example.com",
+      "phone": "+1 555 0102",
+      "address": "88 Comet Street, Riverside, 20002",
+      "tier": "standard"
+    },
+    {
+      "customer_id": "C003",
+      "name": "Chloe Ng",
+      "email": "chloe.ng@example.com",
+      "phone": "+1 555 0103",
+      "address": "301 Nebula Avenue, Unit 12, Lakeside, 30003",
+      "tier": "silver"
+    },
+    {
+      "customer_id": "C004",
+      "name": "Dev Patel",
+      "email": "dev.patel@example.com",
+      "phone": "+1 555 0104",
+      "address": "7 Galaxy Court, Hillview, 40004",
+      "tier": "standard"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "CM-10001",
+      "customer_id": "C001",
+      "status": "delivered",
+      "placed_days_ago": 9,
+      "shipped_days_ago": 7,
+      "delivered_days_ago": 5,
+      "payment_method": "Visa ending 4242",
+      "items": [
+        {"item_id": "CM-10001-1", "sku": "AUD-220", "name": "Nebula Wireless Headphones", "category": "electronics", "quantity": 1, "unit_price": 89.90}
+      ]
+    },
+    {
+      "order_id": "CM-10002",
+      "customer_id": "C001",
+      "status": "delivered",
+      "placed_days_ago": 8,
+      "shipped_days_ago": 6,
+      "delivered_days_ago": 3,
+      "payment_method": "Visa ending 4242",
+      "items": [
+        {"item_id": "CM-10002-1", "sku": "TV-65Q", "name": "Supernova 65\" QLED TV", "category": "electronics", "quantity": 1, "unit_price": 749.00}
+      ]
+    },
+    {
+      "order_id": "CM-10003",
+      "customer_id": "C002",
+      "status": "delivered",
+      "placed_days_ago": 50,
+      "shipped_days_ago": 48,
+      "delivered_days_ago": 45,
+      "payment_method": "Mastercard ending 8812",
+      "items": [
+        {"item_id": "CM-10003-1", "sku": "SHO-RUN9", "name": "Meteor Running Shoes (Size 10)", "category": "apparel", "quantity": 1, "unit_price": 120.00}
+      ]
+    },
+    {
+      "order_id": "CM-10004",
+      "customer_id": "C002",
+      "status": "delivered",
+      "placed_days_ago": 5,
+      "shipped_days_ago": 4,
+      "delivered_days_ago": 2,
+      "payment_method": "Mastercard ending 8812",
+      "items": [
+        {"item_id": "CM-10004-1", "sku": "GC-50", "name": "Cosmic Mart $50 Gift Card", "category": "gift_card", "quantity": 1, "unit_price": 50.00},
+        {"item_id": "CM-10004-2", "sku": "PHC-X2", "name": "Asteroid Phone Case", "category": "accessories", "quantity": 1, "unit_price": 19.99}
+      ]
+    },
+    {
+      "order_id": "CM-10005",
+      "customer_id": "C003",
+      "status": "delivered",
+      "placed_days_ago": 14,
+      "shipped_days_ago": 12,
+      "delivered_days_ago": 10,
+      "payment_method": "PayPal (chloe.ng@example.com)",
+      "items": [
+        {"item_id": "CM-10005-1", "sku": "BLN-500", "name": "Orbit Pro Blender", "category": "home_appliances", "quantity": 1, "unit_price": 64.50},
+        {"item_id": "CM-10005-2", "sku": "KTL-17", "name": "Lunar Electric Kettle", "category": "home_appliances", "quantity": 1, "unit_price": 39.00},
+        {"item_id": "CM-10005-3", "sku": "COF-1KG", "name": "Stardust Coffee Beans 1kg", "category": "perishable", "quantity": 1, "unit_price": 18.00}
+      ]
+    },
+    {
+      "order_id": "CM-10006",
+      "customer_id": "C003",
+      "status": "shipped",
+      "placed_days_ago": 2,
+      "shipped_days_ago": 1,
+      "delivered_days_ago": null,
+      "payment_method": "PayPal (chloe.ng@example.com)",
+      "tracking_number": "CMX123456789",
+      "items": [
+        {"item_id": "CM-10006-1", "sku": "LMP-DSK", "name": "Eclipse Desk Lamp", "category": "home_decor", "quantity": 1, "unit_price": 34.99}
+      ]
+    },
+    {
+      "order_id": "CM-10007",
+      "customer_id": "C004",
+      "status": "returned",
+      "placed_days_ago": 30,
+      "shipped_days_ago": 28,
+      "delivered_days_ago": 25,
+      "payment_method": "Amex ending 1005",
+      "items": [
+        {"item_id": "CM-10007-1", "sku": "BAG-TRV", "name": "Voyager Travel Backpack", "category": "bags", "quantity": 1, "unit_price": 79.00, "returned_quantity": 1}
+      ]
+    },
+    {
+      "order_id": "CM-10008",
+      "customer_id": "C004",
+      "status": "delivered",
+      "placed_days_ago": 10,
+      "shipped_days_ago": 8,
+      "delivered_days_ago": 6,
+      "payment_method": "Amex ending 1005",
+      "items": [
+        {"item_id": "CM-10008-1", "sku": "WCH-S3", "name": "Pulsar Smartwatch Series 3", "category": "electronics", "quantity": 1, "unit_price": 199.00}
+      ]
+    }
+  ]
+}
