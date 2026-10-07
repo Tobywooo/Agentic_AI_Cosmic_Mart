@@ -61,6 +61,22 @@ Rules enforced in code:
 - Once a case is escalated, the agent can't change any orders.
 - After repeated failed identity checks, the case goes to a human.
 
+### Case status lifecycle
+
+| Status | Set when |
+|---|---|
+| `open` | The first message in a conversation creates the case. A `resolved` case reopens when the customer writes again, and its old handoff is archived so a new one can be raised |
+| `escalated` | A handoff is created, either by the model or forced by the server: frustration, a request for a person, a refund over the authority limit (including an eligibility check over the limit that the model didn't act on), or the step limit |
+| `resolved` | The model calls `resolve_case`, a human replies with `close_case: true`, or the case has been idle for `AUTO_RESOLVE_HOURS` with no return still waiting for a pickup or refund |
+
+Handoffs have their own status: `open` → `in_progress` (after a human replies) → `resolved`.
+
+### Front-end chat loop
+
+1. `POST /chat` → show `reply`, and remember `conversation_id` and `message_id`.
+2. Poll `GET /conversations/{id}?after=<last message_id>` to pick up follow-ups and human replies, especially while `case_status` is `escalated`.
+3. Keep your own copy of the chat history. The memory table holds only 50 rows, so old messages drop out of this endpoint.
+
 ### What a human receives (`GET /handoffs/{id}`)
 
 The reason and priority, the agent's summary, the customer profile, all of the customer's orders, returns, pickups and refunds, every action the agent took (with inputs and outcomes), the frustration score and signals, and a transcript snapshot taken at handoff time. A live transcript is added as well. The specialist replies through `POST /handoffs/{id}/reply`, and the message appears in the same conversation.
@@ -70,7 +86,7 @@ The reason and priority, the agent's summary, the customer profile, all of the c
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/chat` | `{message, conversation_id?, customer_id?}` → reply, case status, actions taken, handoff info, frustration score |
-| GET | `/conversations/{id}` | Customer-visible messages. Poll this to pick up follow-ups and human replies |
+| GET | `/conversations/{id}?after=<message_id>` | Customer-visible messages, each with a `message_id`. Poll with `after` set to the newest ID you have to get only new follow-ups and human replies |
 | GET | `/cases`, `/cases/{conversation_id}` | Case records with returns, pickups, refunds and follow-ups |
 | GET | `/handoffs?status=open`, `/handoffs/{id}` | Human queue and the full context package |
 | POST | `/handoffs/{id}/reply` | `{agent_name, message, close_case}` |

@@ -69,6 +69,8 @@ class Settings:
     port: int = 8000
     cors_origins: tuple[str, ...] = ("*",)
     follow_up_poll_seconds: int = 30
+    # Open cases with nothing outstanding are resolved after this much inactivity (0 disables).
+    auto_resolve_hours: float = 72.0
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -109,4 +111,5 @@ class Settings:
                 tuple(o.strip() for o in origins.split(",") if o.strip()) if origins else d.cors_origins
             ),
             follow_up_poll_seconds=int(_env("FOLLOW_UP_POLL_SECONDS", default=str(d.follow_up_poll_seconds))),
+            auto_resolve_hours=float(_env("AUTO_RESOLVE_HOURS", default=str(d.auto_resolve_hours))),
         )

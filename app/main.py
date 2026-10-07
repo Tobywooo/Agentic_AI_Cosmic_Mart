@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 
 from .agent import ConversationConflict, ResolutionAgent
 from .config import Settings
-from .followups import deliver_due_follow_ups
+from .followups import auto_resolve_inactive_cases, deliver_due_follow_ups
 from .llm import ChatModel, LLMUnavailable, OpenAICompatibleLLM
 from .memory import ExcelMemory
 from .schemas import ChatRequest, ChatResponse, HumanReply
@@ -28,19 +28,23 @@ def create_app(settings: Settings | None = None, llm: ChatModel | None = None) -
     llm = llm or OpenAICompatibleLLM(settings)
     agent = ResolutionAgent(llm, store, memory, settings)
 
-    async def follow_up_loop():
+    async def background_loop():
         while True:
             await asyncio.sleep(settings.follow_up_poll_seconds)
             try:
                 sent = await asyncio.to_thread(deliver_due_follow_ups, store, memory)
                 if sent:
                     log.info("Delivered %d follow-up(s)", len(sent))
+                closed = await asyncio.to_thread(auto_resolve_inactive_cases, store, memory,
+                                                 settings.auto_resolve_hours)
+                if closed:
+                    log.info("Auto-resolved %d inactive case(s)", len(closed))
             except Exception:
-                log.exception("Follow-up delivery failed")
+                log.exception("Background job failed")
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
-        task = asyncio.create_task(follow_up_loop())
+        task = asyncio.create_task(background_loop())
         yield
         task.cancel()
 
@@ -75,15 +79,18 @@ def create_app(settings: Settings | None = None, llm: ChatModel | None = None) -
             raise HTTPException(status_code=409, detail=str(exc))
 
     @app.get("/conversations/{conversation_id}", tags=["chat"])
-    def conversation(conversation_id: str):
-        """Messages visible to the customer (poll this to receive follow-ups and human replies)."""
+    def conversation(conversation_id: str, after: int | None = None):
+        """Messages visible to the customer. Poll with `after=<last message_id you have>` to get only
+        new ones (follow-ups, human replies). Older messages drop out once the memory table is full,
+        so the front end should keep its own copy of the chat."""
         with store.read() as data:
             case = data["cases"].get(conversation_id)
         if case is None:
             raise HTTPException(404, "Conversation not found")
-        messages = [{"timestamp": r["timestamp"], "role": r["role"], "kind": r["tool_name"] or "message",
-                     "content": r["content"]}
-                    for r in memory.history(conversation_id) if r["role"] != "tool"]
+        messages = [{"message_id": r["row_id"], "timestamp": r["timestamp"], "role": r["role"],
+                     "kind": r["tool_name"] or "message", "content": r["content"]}
+                    for r in memory.history(conversation_id)
+                    if r["role"] != "tool" and (after is None or r["row_id"] > after)]
         return {"conversation_id": conversation_id, "case_ref": case["case_ref"], "case_status": case["status"],
                 "handoff_id": case.get("handoff_id"), "messages": messages}
 
@@ -152,7 +159,7 @@ def create_app(settings: Settings | None = None, llm: ChatModel | None = None) -
             handoff["human_replies"].append({"at": iso(utcnow()), "agent_name": body.agent_name,
                                              "message": body.message})
             case = data["cases"][handoff["conversation_id"]]
-            if body.close_case:
+            if body.close_case and case.get("handoff_id") == handoff_id:  # not an older, archived handoff
                 case["status"] = "resolved"
                 case["resolution"] = f"Resolved by {body.agent_name}"
                 case["resolved_at"] = iso(utcnow())

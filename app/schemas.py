@@ -15,6 +15,7 @@ class ChatResponse(BaseModel):
     conversation_id: str
     case_ref: str
     reply: str
+    message_id: int = Field(..., description="ID of the reply; poll /conversations/{id}?after=<this> for newer messages.")
     case_status: str
     escalated: bool
     handoff_id: str | None

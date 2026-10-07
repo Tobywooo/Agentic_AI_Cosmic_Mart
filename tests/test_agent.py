@@ -1,4 +1,9 @@
-from app.followups import deliver_due_follow_ups
+from dataclasses import replace
+from datetime import timedelta
+
+from app.agent import ResolutionAgent
+from app.followups import auto_resolve_inactive_cases, deliver_due_follow_ups
+from app.store import iso, utcnow
 from tests.conftest import last_observation
 
 
@@ -105,3 +110,53 @@ def test_step_limit_escalates(agent, llm, settings):
     result = agent.handle_message("where are my orders", customer_id="C003")
     assert result.escalated and result.handoff_id
     assert len(result.actions) == settings.max_agent_steps
+
+
+def test_over_limit_eligibility_check_forces_handoff(agent, llm, store):
+    llm.push(act("check_return_eligibility", order_id="CM-10002"),
+             final("Sure, I can return the TV for you!"))  # model ignores within_authority: false
+    result = agent.handle_message("Can I return my TV?", customer_id="C001")
+    assert result.escalated and result.handoff_id
+    with store.read() as data:
+        assert "exceeds remaining authority" in data["handoffs"][result.handoff_id]["reason"]
+
+
+def test_rechecking_fewer_items_within_authority_does_not_force_handoff(llm, store, memory, settings):
+    agent = ResolutionAgent(llm, store, memory, replace(settings, return_authority_limit=60.0))
+    llm.push(act("check_return_eligibility", order_id="CM-10005"),  # blender + kettle = 103.50: over
+             act("check_return_eligibility", order_id="CM-10005",
+                 items=[{"item_id": "CM-10005-2", "quantity": 1}]),  # kettle only = 39.00: fits
+             final("Your kettle can be returned for 39.00. Shall I go ahead?"))
+    result = agent.handle_message("I only want to return the kettle", customer_id="C003")
+    assert not result.escalated and result.handoff_id is None
+
+
+def test_reopened_case_can_be_escalated_again(agent, llm, store):
+    llm.push(final("Let me check."))
+    first = agent.handle_message("I want to speak to a human", customer_id="C001")
+    assert first.handoff_id == "HO-00001"
+    with store.transaction() as data:  # what POST /handoffs/HO-00001/reply with close_case=true does
+        data["cases"][first.conversation_id]["status"] = "resolved"
+
+    llm.push(final("Let me check."))
+    second = agent.handle_message("New problem. Get me a real person please", conversation_id=first.conversation_id)
+    assert second.escalated and second.handoff_id == "HO-00002"
+    with store.read() as data:
+        assert data["handoffs"]["HO-00002"]["previous_handoff_ids"] == ["HO-00001"]
+
+
+def test_inactive_cases_auto_resolve_unless_work_outstanding(agent, llm, store, memory):
+    llm.push(final("Hello! How can I help?"))
+    idle = agent.handle_message("hi", customer_id="C003")
+    llm.push(act("approve_return", order_id="CM-10001", reason="Not needed"), final("Approved. Pick a slot?"))
+    pending = agent.handle_message("return my headphones", customer_id="C001")  # approved, no pickup yet
+
+    with store.transaction() as data:
+        for case in data["cases"].values():
+            case["last_reply_at"] = iso(utcnow() - timedelta(hours=100))
+
+    assert auto_resolve_inactive_cases(store, memory, hours=72) == [idle.conversation_id]
+    with store.read() as data:
+        assert data["cases"][idle.conversation_id]["status"] == "resolved"
+        assert data["cases"][pending.conversation_id]["status"] == "open"
+    assert auto_resolve_inactive_cases(store, memory, hours=0) == []
