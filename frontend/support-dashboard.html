@@ -583,6 +583,72 @@
   .load-error { color: var(--red); font-size: 14px; padding: 24px; }
 
   /* ── RESPONSIVE ─────────────────────────── */
+
+/* Conversation Recovery Modal */
+
+.recovery-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(21, 32, 43, 0.6);
+}
+
+.recovery-modal[hidden] {
+  display: none;
+}
+
+.recovery-modal-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--white);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+}
+
+.recovery-modal-card h2 {
+  margin-bottom: 10px;
+}
+
+.recovery-modal-card p {
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.recovery-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.recovery-btn {
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recovery-btn-primary {
+  background: var(--brand);
+  color: white;
+  border: 1px solid var(--brand);
+}
+
+.recovery-btn-primary:hover {
+  background: var(--brand-hover);
+}
+
+.recovery-btn-secondary {
+  background: white;
+  border: 1px solid var(--line);
+}
+
+
   @media (max-width: 1100px) {
     .case-context { width: 270px; }
   }
@@ -790,9 +856,41 @@
   </section>
 </main>
 
+
+<div id="conversation-recovery-modal" class="recovery-modal" hidden>
+  <div class="recovery-modal-card">
+
+    <h2>Previous Conversation Found</h2>
+
+    <p>
+      We found a previous conversation. Would you like to continue it
+      or start a new one?
+    </p>
+
+    <div class="recovery-modal-actions">
+
+      <button
+        id="continue-conversation-btn"
+        class="recovery-btn recovery-btn-primary"
+      >
+        Continue Current Conversation
+      </button>
+
+      <button
+        id="start-new-conversation-btn"
+        class="recovery-btn recovery-btn-secondary"
+      >
+        Start New Conversation
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+
 <script>
-// Served by the backend (Docker / production): same origin. Opened via `python -m http.server` or file://: local API.
-const API = (location.protocol === "file:" || location.port === "5500") ? "http://127.0.0.1:8000" : "";
+const API = "http://127.0.0.1:8000";
 let conversationId = localStorage.getItem("conversationId") || null;
 let lastId = 0;
 const seen = new Set();
@@ -1371,13 +1469,47 @@ function escHtml(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+
+// ─── CONVERSATION RECOVERY MODAL ──────────────────────────
+
+function showConversationRecoveryModal() {
+  return new Promise(resolve => {
+    const modal = document.getElementById(
+      'conversation-recovery-modal'
+    );
+
+    const continueBtn = document.getElementById(
+      'continue-conversation-btn'
+    );
+
+    const newBtn = document.getElementById(
+      'start-new-conversation-btn'
+    );
+
+    modal.hidden = false;
+
+    continueBtn.onclick = () => {
+      modal.hidden = true;
+      resolve(true);
+    };
+
+    newBtn.onclick = () => {
+      modal.hidden = true;
+      resolve(false);
+    };
+  });
+}
+
+
+
+
 // ─── INIT ─────────────────────────────────────────────────
 async function initializeApp() {
   renderEmptyState();
   loadCustomers();
-  startPolling();
 
   if (!conversationId) {
+    startPolling();
     return;
   }
 
@@ -1388,19 +1520,19 @@ async function initializeApp() {
     navigationEntry?.type === 'reload';
 
   if (pageWasRefreshed) {
-    const continueConversation = confirm(
-      'Would you like to continue your previous conversation?\n\n' +
-      'Select OK to continue or Cancel to start a new conversation.'
-    );
+    const continueConversation =
+      await showConversationRecoveryModal();
 
     if (!continueConversation) {
       newChat();
+      startPolling();
       return;
     }
   }
 
   showConvId();
   await poll();
+  startPolling();
 }
 
 initializeApp();
