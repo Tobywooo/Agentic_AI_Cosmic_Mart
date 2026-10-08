@@ -1,0 +1,37 @@
+# Unraid deployment. Copy this folder to the server, e.g. /mnt/user/appdata/cosmic-mart/,
+# put the real .env next to this file, then: docker compose up -d
+# (or paste it into the Docker Compose Manager plugin).
+
+services:
+  cosmic-mart:
+    image: ghcr.io/tobywooo/agentic_ai_cosmic_mart:latest
+    container_name: cosmic-mart
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Container-specific overrides; anything else comes from .env
+      HOST: 0.0.0.0
+      PORT: 8000
+      MEMORY_PATH: /data/memory.xlsx
+      STATE_PATH: /data/state.json
+    volumes:
+      - /mnt/user/appdata/cosmic-mart/runtime:/data
+    ports:
+      # Host port 8089 -> container 8000. Change 8089 if it clashes with your other site.
+      - "8089:8000"
+    labels:
+      # Only containers with this label are updated by the watchtower below.
+      - com.centurylinklabs.watchtower.enable=true
+
+  watchtower:
+    # Maintained fork; the original containrrr/watchtower was archived in Dec 2025.
+    image: nickfedor/watchtower:latest
+    container_name: watchtower-cosmic-mart
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_LABEL_ENABLE: "true"   # never touch containers without the label (e.g. your other website)
+      WATCHTOWER_POLL_INTERVAL: "300"   # check GHCR every 5 minutes
+      WATCHTOWER_CLEANUP: "true"        # delete the old image after updating
+      TZ: Etc/UTC

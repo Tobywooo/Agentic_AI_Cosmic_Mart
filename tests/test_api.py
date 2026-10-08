@@ -46,3 +46,11 @@ def test_llm_offline_returns_503(settings):
     with TestClient(create_app(settings, DownLLM())) as client:
         res = client.post("/chat", json={"message": "hello", "customer_id": "C001"})
         assert res.status_code == 503 and "connection refused" in res.json()["detail"]
+
+
+def test_root_serves_dashboard(settings):
+    with TestClient(create_app(settings, ScriptedLLM())) as client:
+        res = client.get("/")
+        assert res.status_code == 200
+        assert res.headers["content-type"].startswith("text/html")
+        assert "const API" in res.text

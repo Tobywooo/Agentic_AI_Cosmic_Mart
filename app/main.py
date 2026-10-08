@@ -8,10 +8,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from .agent import ConversationConflict, ResolutionAgent
-from .config import Settings
+from .config import PROJECT_ROOT, Settings
 from .followups import auto_resolve_inactive_cases, deliver_due_follow_ups
 from .llm import ChatModel, LLMUnavailable, OpenAICompatibleLLM
 from .memory import ExcelMemory
@@ -56,6 +56,12 @@ def create_app(settings: Settings | None = None, llm: ChatModel | None = None) -
     @app.exception_handler(LLMUnavailable)
     async def _llm_down(_: Request, exc: LLMUnavailable):
         return JSONResponse(status_code=503, content={"detail": str(exc)})
+
+    # ---------------------------------------------------------------- front end
+    @app.get("/", include_in_schema=False)
+    def dashboard():
+        """Serve the support dashboard from the same origin as the API (used by the Docker deployment)."""
+        return FileResponse(PROJECT_ROOT / "frontend" / "support-dashboard.html")
 
     # ---------------------------------------------------------------- health
     @app.get("/health", tags=["system"])

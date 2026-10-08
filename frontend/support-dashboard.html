@@ -791,7 +791,8 @@
 </main>
 
 <script>
-const API = "http://127.0.0.1:8000";
+// Served by the backend (Docker / production): same origin. Opened via `python -m http.server` or file://: local API.
+const API = (location.protocol === "file:" || location.port === "5500") ? "http://127.0.0.1:8000" : "";
 let conversationId = localStorage.getItem("conversationId") || null;
 let lastId = 0;
 const seen = new Set();
