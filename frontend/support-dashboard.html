@@ -1340,13 +1340,38 @@ function escHtml(s) {
 }
 
 // ─── INIT ─────────────────────────────────────────────────
-renderEmptyState();
-loadCustomers();
-startPolling();
-if (conversationId) {
+async function initializeApp() {
+  renderEmptyState();
+  loadCustomers();
+  startPolling();
+
+  if (!conversationId) {
+    return;
+  }
+
+  const navigationEntry =
+    performance.getEntriesByType('navigation')[0];
+
+  const pageWasRefreshed =
+    navigationEntry?.type === 'reload';
+
+  if (pageWasRefreshed) {
+    const continueConversation = confirm(
+      'Would you like to continue your previous conversation?\n\n' +
+      'Select OK to continue or Cancel to start a new conversation.'
+    );
+
+    if (!continueConversation) {
+      newChat();
+      return;
+    }
+  }
+
   showConvId();
-  poll();
+  await poll();
 }
+
+initializeApp();
 </script>
 </body>
 </html>
