@@ -842,20 +842,35 @@ async function loadCustomers() {
   }
 }
 
-// ─── CHAT SEND ────────────────────────────────────────────
+// ─── CHAT ─────────────────────────────────────────────────
+
 async function sendMessage() {
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
+
   if (!text || sending) return;
-  if (text.length > 4000) { showError(422); return; }
+
+  if (text.length > 4000) {
+    showError(422);
+    return;
+  }
+
+  renderMessage({
+    role: 'user',
+    content: text,
+    message_id: Date.now(),
+    created_at: new Date().toISOString()
+  });
 
   input.value = '';
   handleInput();
+
   sending = true;
   document.getElementById('send-btn').disabled = true;
   document.getElementById('typing-indicator').classList.add('visible');
   hideError();
 
+ 
   const body = { message: text };
   if (conversationId) body.conversation_id = conversationId;
   if (selectedCustomerId) body.customer_id = selectedCustomerId;
@@ -866,14 +881,31 @@ async function sendMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
+
     document.getElementById('typing-indicator').classList.remove('visible');
-    if (!res.ok) { sending = false; handleInput(); showError(res.status); return; }
+
+    if (!res.ok) {
+      sending = false;
+      handleInput();
+      showError(res.status);
+      return;
+    }
+
     const data = await res.json();
+
     conversationId = data.conversation_id;
     localStorage.setItem('conversationId', conversationId);
+
     showConvId();
     await poll();
-    updateHeader(data.case_ref, data.case_status, data.escalated, data.handoff_id);
+
+    updateHeader(
+      data.case_ref,
+      data.case_status,
+      data.escalated,
+      data.handoff_id
+    );
+
   } catch {
     document.getElementById('typing-indicator').classList.remove('visible');
     showError(503);
