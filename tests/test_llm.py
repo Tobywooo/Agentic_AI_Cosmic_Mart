@@ -7,7 +7,7 @@ import app.config as config
 from app.config import Settings
 from app.llm import AnthropicLLM, LLMUnavailable, OpenAICompatibleLLM, create_llm
 
-LLM_VARS = ["LLM_PROVIDER", "LLM_API_KEY", "LLM_BASE_URL", "LLM_AUTH_STYLE", "LLM_MODEL",
+LLM_VARS = ["LLM_PROVIDER", "LLM_API_KEY", "LLM_BASE_URL", "LLM_AUTH_STYLE", "LLM_MODEL", "LLM_FALLBACK_MODELS",
             "OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_API_BASE", "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL"]
 
 
@@ -44,8 +44,8 @@ def test_invalid_provider_is_rejected(clean_env):
 
 
 def anthropic_settings(**overrides):
-    return replace(Settings(), llm_provider="anthropic", llm_api_key="k", llm_model="claude-sonnet-5-5",
-                   **overrides)
+    values = {"llm_provider": "anthropic", "llm_api_key": "k", "llm_model": "claude-sonnet-5-5", **overrides}
+    return replace(Settings(), **values)
 
 
 def fake_response(text):
@@ -134,3 +134,41 @@ def test_anthropic_gives_up_after_repeated_model_not_available(monkeypatch):
     with pytest.raises(LLMUnavailable, match="not available for your organization"):
         llm.complete([{"role": "user", "content": "x"}])
     assert len(attempts) == llm_module.TRANSIENT_ATTEMPTS
+
+
+def test_anthropic_falls_back_when_primary_model_unavailable(monkeypatch):
+    import app.llm as llm_module
+
+    monkeypatch.setattr(llm_module.time, "sleep", lambda s: None)
+    llm = AnthropicLLM(anthropic_settings(llm_model="claude-haiku-4-5", llm_fallback_models=("claude-opus-5-5",)))
+    used = []
+
+    def create(**kw):
+        used.append(kw["model"])
+        if kw["model"] == "claude-haiku-4-5":
+            raise _not_available_error()
+        return fake_response(f"answered by {kw['model']}")
+
+    monkeypatch.setattr(llm.client.messages, "create", create)
+    assert llm.complete([{"role": "user", "content": "x"}]) == "answered by claude-opus-5-5"
+    assert used == ["claude-haiku-4-5", "claude-opus-5-5"]  # primary tried once, no slow retries
+
+    # The unavailable primary is skipped for a while, so the next call goes straight to the fallback.
+    used.clear()
+    llm.complete([{"role": "user", "content": "y"}])
+    assert used == ["claude-opus-5-5"]
+
+    # After the skip window, the primary is tried again.
+    monkeypatch.setattr(llm_module.time, "monotonic", lambda: 10**9)
+    used.clear()
+    llm.complete([{"role": "user", "content": "z"}])
+    assert used[0] == "claude-haiku-4-5"
+
+
+def test_fallback_models_setting(clean_env):
+    clean_env.setenv("LLM_PROVIDER", "anthropic")
+    clean_env.setenv("LLM_MODEL", "claude-haiku-4-5")
+    clean_env.setenv("LLM_FALLBACK_MODELS", " claude-opus-5-5 , claude-sonnet-4-5 ")
+    s = Settings.from_env()
+    assert s.llm_fallback_models == ("claude-opus-5-5", "claude-sonnet-4-5")
+    assert AnthropicLLM(s).models == ["claude-haiku-4-5", "claude-opus-5-5", "claude-sonnet-4-5"]

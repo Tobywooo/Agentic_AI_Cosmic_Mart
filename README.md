@@ -46,6 +46,15 @@ If a proxy returns `401` even though the key is correct, add `LLM_AUTH_STYLE=bea
 
 Keep `LLM_MAX_TOKENS` at 2000 or higher. Claude writes detailed handoff summaries, and at 800 they got cut off.
 
+Vocareum's gateway intermittently rejects enabled models with `400 "Model … is not available for your organization"`. It happened with Haiku and Sonnet 4.5 several times; Opus 5.5 was never rejected in testing. Set a backup model so a rejection doesn't become a `503`:
+
+```
+LLM_MODEL=claude-haiku-4-5
+LLM_FALLBACK_MODELS=claude-opus-5-5
+```
+
+If the main model is rejected, the request goes straight to the backup. The rejected model is skipped for 60 seconds, then tried again. The server log shows a warning each time this happens.
+
 **OpenAI-compatible (e.g. llama.cpp):**
 ```
 LLM_PROVIDER=openai
@@ -275,7 +284,8 @@ The scenarios above were also run against a live `qwen3.8-27b` on llama.cpp. In 
 |---|---|
 | `/health/llm` or `/chat` returns 503 | Is `LLM_PROVIDER` right for your key? Is `LLM_BASE_URL` reachable (`openai`: must end in `/v1`; `anthropic`: host root only)? Are `LLM_API_KEY` and `LLM_MODEL` correct? The error detail includes the provider's message |
 | `401` / authentication error from a Claude proxy | Try `LLM_AUTH_STYLE=bearer` |
-| `404` / model not found, or `400 "Model ... is not available for your organization"` | Set `LLM_MODEL` to a model ID your provider has enabled for your key |
+| `404` / model not found | Set `LLM_MODEL` to a model ID your provider has enabled for your key |
+| `400 "Model ... is not available for your organization"`, but only sometimes | Vocareum gateway issue: set `LLM_FALLBACK_MODELS` (see the Vocareum section) |
 | The server log warns `LLM reply hit LLM_MAX_TOKENS` | Raise `LLM_MAX_TOKENS` (2000 or more is recommended for Claude) |
 | Logged-in customer is asked for their email | Make sure the front end sends `customer_id` with `/chat` |
 | Model replies aren't valid JSON | Keep `LLM_JSON_MODE=true` and lower `LLM_TEMPERATURE`. The server log shows a warning if the server rejects JSON mode |

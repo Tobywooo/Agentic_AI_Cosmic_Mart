@@ -43,6 +43,8 @@ class Settings:
     # Anthropic only: "api_key" sends the x-api-key header; "bearer" sends Authorization: Bearer <key>.
     llm_auth_style: str = "api_key"
     llm_model: str = "local-model"
+    # Anthropic only: tried in order when the gateway reports LLM_MODEL as unavailable.
+    llm_fallback_models: tuple[str, ...] = ()
     llm_temperature: float = 0.2
     llm_max_tokens: int = 2000
     llm_timeout_seconds: float = 120.0
@@ -101,6 +103,7 @@ class Settings:
             llm_base_url=base_url,
             llm_auth_style=auth_style,
             llm_model=_env("LLM_MODEL", default=d.llm_model),
+            llm_fallback_models=tuple(m.strip() for m in (_env("LLM_FALLBACK_MODELS") or "").split(",") if m.strip()),
             llm_temperature=float(_env("LLM_TEMPERATURE", default=str(d.llm_temperature))),
             llm_max_tokens=int(_env("LLM_MAX_TOKENS", default=str(d.llm_max_tokens))),
             llm_timeout_seconds=float(_env("LLM_TIMEOUT_SECONDS", default=str(d.llm_timeout_seconds))),
