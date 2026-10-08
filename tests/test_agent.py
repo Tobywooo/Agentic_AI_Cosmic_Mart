@@ -160,3 +160,35 @@ def test_inactive_cases_auto_resolve_unless_work_outstanding(agent, llm, store, 
         assert data["cases"][idle.conversation_id]["status"] == "resolved"
         assert data["cases"][pending.conversation_id]["status"] == "open"
     assert auto_resolve_inactive_cases(store, memory, hours=0) == []
+
+
+def test_truncated_json_is_never_shown_to_the_customer(agent, llm):
+    cut_off = '{"thought": "x", "action": "escalate_to_human", "action_input": {"reason": "Customer wants'
+    llm.push(cut_off, cut_off)
+    result = agent.handle_message("hello", customer_id="C003")
+    assert "{" not in result.reply and "action" not in result.reply
+
+
+def test_truncated_final_answer_text_is_salvaged(agent, llm):
+    cut_off = '{"thought": "x", "final_answer": "Your refund of 89.90 is on its way and should arr'
+    llm.push(cut_off, cut_off)
+    result = agent.handle_message("hello", customer_id="C003")
+    assert result.reply == "Your refund of 89.90 is on its way and should arr"
+
+
+def test_model_created_frustration_handoff_is_forced_to_high_priority(agent, llm, store):
+    llm.push(act("escalate_to_human", reason="Wants a person", summary="Asked for a human"),  # no priority
+             final("A specialist will contact you (HO-00001)."))
+    result = agent.handle_message("I want to speak to a real person now", customer_id="C002")
+    with store.read() as data:
+        assert data["handoffs"][result.handoff_id]["priority"] == "high"
+
+
+def test_earlier_tool_results_are_replayed_in_later_turns(agent, llm):
+    llm.push(act("get_order_history"), final("You have two orders."))
+    first = agent.handle_message("What did I order?", customer_id="C001")
+    llm.push(final("It was delivered recently."))
+    agent.handle_message("When did the headphones arrive?", conversation_id=first.conversation_id)
+    system_prompt = llm.calls[-1][0]["content"]
+    earlier_section = system_prompt.split("## Earlier tool results")[1]
+    assert "Nebula Wireless Headphones" in earlier_section

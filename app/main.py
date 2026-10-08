@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from .agent import ConversationConflict, ResolutionAgent
 from .config import PROJECT_ROOT, Settings
 from .followups import auto_resolve_inactive_cases, deliver_due_follow_ups
-from .llm import ChatModel, LLMUnavailable, OpenAICompatibleLLM
+from .llm import ChatModel, LLMUnavailable, create_llm
 from .memory import ExcelMemory
 from .schemas import ChatRequest, ChatResponse, HumanReply
 from .store import StateStore, iso, utcnow
@@ -25,7 +25,7 @@ def create_app(settings: Settings | None = None, llm: ChatModel | None = None) -
     settings = settings or Settings.from_env()
     store = StateStore(settings.state_path, settings.seed_path)
     memory = ExcelMemory(settings.memory_path, settings.memory_max_rows)
-    llm = llm or OpenAICompatibleLLM(settings)
+    llm = llm or create_llm(settings)
     agent = ResolutionAgent(llm, store, memory, settings)
 
     async def background_loop():
@@ -54,7 +54,8 @@ def create_app(settings: Settings | None = None, llm: ChatModel | None = None) -
     app.state.settings, app.state.store, app.state.memory, app.state.agent = settings, store, memory, agent
 
     @app.exception_handler(LLMUnavailable)
-    async def _llm_down(_: Request, exc: LLMUnavailable):
+    async def _llm_down(request: Request, exc: LLMUnavailable):
+        log.error("503 on %s: %s", request.url.path, exc)  # so the reason shows in the server terminal
         return JSONResponse(status_code=503, content={"detail": str(exc)})
 
     # ---------------------------------------------------------------- front end
@@ -66,15 +67,16 @@ def create_app(settings: Settings | None = None, llm: ChatModel | None = None) -
     # ---------------------------------------------------------------- health
     @app.get("/health", tags=["system"])
     def health():
-        return {"status": "ok", "llm_base_url": settings.openai_base_url, "llm_model": settings.llm_model,
+        return {"status": "ok", "llm_provider": settings.llm_provider,
+                "llm_base_url": settings.llm_base_url or "(SDK default)", "llm_model": settings.llm_model,
                 "authority_limit": settings.return_authority_limit, "currency": settings.currency,
                 "memory_rows": len(memory.all_rows()), "memory_max_rows": settings.memory_max_rows}
 
     @app.get("/health/llm", tags=["system"])
     def health_llm():
-        if not isinstance(llm, OpenAICompatibleLLM):
-            return {"status": "ok", "models": []}
-        return {"status": "ok", "models": llm.list_models()}
+        if not hasattr(llm, "list_models"):  # e.g. a scripted test model
+            return {"status": "ok", "provider": settings.llm_provider, "models": []}
+        return {"status": "ok", "provider": settings.llm_provider, "models": llm.list_models()}
 
     # ---------------------------------------------------------------- chat
     @app.post("/chat", response_model=ChatResponse, tags=["chat"])

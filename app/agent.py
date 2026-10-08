@@ -19,7 +19,7 @@ from .frustration import FrustrationResult, detect_frustration
 from .llm import ChatModel
 from .memory import ExcelMemory
 from .prompts import ALREADY_ESCALATED_ALERT, ESCALATE_ALERT, build_system_prompt
-from .protocol import format_final, parse_agent_output
+from .protocol import format_final, parse_agent_output, salvage_reply
 from .store import StateStore, iso, utcnow
 from .tools import ToolContext, create_handoff, execute_tool, log_action
 
@@ -84,10 +84,12 @@ class ResolutionAgent:
         self._log(conversation_id, "user", message)
 
         already_escalated = case["status"] == "escalated"
+        handoff_before = case.get("handoff_id")
+        frustrated = not already_escalated and frustration.should_escalate(self.settings.frustration_threshold)
         must_escalate = None
         if already_escalated:
             alert = ALREADY_ESCALATED_ALERT.format(handoff_id=case["handoff_id"])
-        elif frustration.should_escalate(self.settings.frustration_threshold):
+        elif frustrated:
             why = ("asked to speak to a human" if frustration.requests_human
                    else f"is frustrated ({', '.join(frustration.signals)})")
             must_escalate = f"Customer {why}."
@@ -110,7 +112,9 @@ class ResolutionAgent:
                     format_retries += 1
                     messages += [{"role": "assistant", "content": raw}, {"role": "user", "content": FORMAT_REMINDER}]
                     continue
-                reply = raw.strip() or None  # model ignored the protocol: treat plain text as the reply
+                # Model ignored the protocol twice. Plain prose can go to the customer as-is, but never a
+                # broken/truncated JSON object: salvage its final_answer text or fall back to a safe reply.
+                reply = salvage_reply(raw)
                 break
             if step.final_answer is not None:
                 reply = step.final_answer
@@ -154,6 +158,11 @@ class ResolutionAgent:
         with self.store.transaction() as data:
             case = data["cases"][conversation_id]
             case["last_reply_at"] = iso(utcnow())
+            new_handoff = case.get("handoff_id") if case.get("handoff_id") != handoff_before else None
+            if frustrated and new_handoff:  # the model may omit or lower the priority
+                handoff = data["handoffs"][new_handoff]
+                if handoff["priority"] in ("low", "normal"):
+                    handoff["priority"] = "high"
             case = dict(case)
         reply_row = self._log(conversation_id, "assistant", reply)
 
@@ -246,11 +255,13 @@ class ResolutionAgent:
         return result["handoff_id"]
 
     def _build_messages(self, conversation_id: str, current_message: str, alert: str) -> list[dict]:
+        history = self.memory.history(conversation_id)
         with self.store.read() as data:
-            system = build_system_prompt(data["cases"][conversation_id], data, self.settings, alert)
+            system = build_system_prompt(data["cases"][conversation_id], data, self.settings, alert,
+                                         tool_rows=[r for r in history if r["role"] == "tool"])
 
         turns: list[list] = []  # [role, text] with consecutive same-role turns merged
-        for row in self.memory.history(conversation_id)[-self.settings.history_messages:]:
+        for row in history[-self.settings.history_messages:]:
             if row["role"] == "user":
                 role, text = "user", row["content"]
             elif row["role"] == "assistant":

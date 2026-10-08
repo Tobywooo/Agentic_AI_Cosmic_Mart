@@ -56,6 +56,30 @@ def parse_agent_output(text: str) -> AgentStep | None:
     return None
 
 
+_PARTIAL_FINAL = re.compile(r'"final_answer"\s*:\s*"((?:[^"\\]|\\.)*)', re.DOTALL)
+
+
+def salvage_reply(text: str) -> str | None:
+    """Best-effort customer reply from output that failed to parse (e.g. JSON cut off at the token limit).
+
+    Plain prose is returned as-is. Anything that looks like protocol JSON is never shown raw: we recover
+    the (possibly truncated) final_answer text if present, otherwise return None so a safe default is used.
+    """
+    text = (text or "").strip()
+    if not text:
+        return None
+    if "{" not in text and '"action"' not in text:
+        return text
+    match = _PARTIAL_FINAL.search(text)
+    if match and match.group(1).strip():
+        raw = match.group(1).rstrip("\\")
+        try:
+            return json.loads(f'"{raw}"').strip()
+        except json.JSONDecodeError:
+            return raw.replace("\\n", "\n").replace('\\"', '"').strip()
+    return None
+
+
 def format_final(answer: str) -> str:
     """How earlier agent replies are replayed in history, so the model keeps to the protocol."""
     return json.dumps({"final_answer": answer}, ensure_ascii=False)

@@ -15,7 +15,8 @@ COPY data ./data
 COPY frontend ./frontend
 COPY run.py .
 
-# Container defaults. Secrets (OPENAI_API_KEY, OPENAI_BASE_URL, LLM_MODEL) are supplied at runtime, never baked in.
+# Container defaults. LLM settings and secrets (LLM_PROVIDER, LLM_API_KEY, LLM_BASE_URL, LLM_MODEL) are supplied
+# at runtime, never baked in.
 # Runtime state lives in /data, which should be mounted as a volume so it survives redeploys.
 ENV HOST=0.0.0.0 \
     PORT=8000 \

@@ -48,3 +48,11 @@ def test_frustration_detection():
     repeat = detect_frustration("My order CM-10006 has not arrived yet",
                                 ["my order CM-10006 has not arrived yet."])
     assert "customer repeating themselves" in repeat.signals
+
+
+def test_salvage_reply():
+    from app.protocol import salvage_reply
+    assert salvage_reply("Hello there") == "Hello there"
+    assert salvage_reply('{"action": "get_order_history", "action_input": {') is None
+    assert salvage_reply('{"final_answer": "Line one\nLine \\"two\\" and mo') == 'Line one\nLine "two" and mo'
+    assert salvage_reply("") is None

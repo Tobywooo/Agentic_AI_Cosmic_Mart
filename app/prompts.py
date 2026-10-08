@@ -39,9 +39,14 @@ To call a tool:
 To reply to the customer:
 {{"thought": "<short reasoning>", "final_answer": "<your message to the customer>"}}
 Call one tool at a time. After each tool call you will receive an OBSERVATION; use it to decide the next step.
+Keep "thought" to one or two sentences. Call escalate_to_human at most once per case.
 
 ## Current case
+"recent_actions" is an abbreviated log; the full results of earlier tool calls are listed under "Earlier tool results".
 {case}
+
+## Earlier tool results (this conversation, oldest first; complete and accurate, rely on them)
+{earlier}
 {alert}"""
 
 
@@ -74,7 +79,28 @@ def case_summary(case: dict, data: dict, settings: Settings) -> str:
     return json.dumps(summary, indent=1, ensure_ascii=False)
 
 
-def build_system_prompt(case: dict, data: dict, settings: Settings, alert: str = "") -> str:
+EARLIER_RESULTS_LIMIT = 6
+EARLIER_RESULT_CHARS = 1500
+
+
+def earlier_tool_results(tool_rows: list[dict]) -> str:
+    """Replay the last few tool calls from previous turns, so facts the model already looked up
+    (delivery dates, prices, slot lists) stay visible instead of being re-derived or doubted."""
+    lines = []
+    for row in tool_rows[-EARLIER_RESULTS_LIMIT:]:
+        try:
+            logged = json.loads(row["content"])
+            text = json.dumps({"input": logged.get("input"), "result": logged.get("result")}, ensure_ascii=False)
+        except (TypeError, ValueError):
+            text = str(row["content"])
+        if len(text) > EARLIER_RESULT_CHARS:
+            text = text[:EARLIER_RESULT_CHARS] + " ...[shortened]"
+        lines.append(f"- {row['tool_name']}: {text}")
+    return "\n".join(lines) or "(none yet)"
+
+
+def build_system_prompt(case: dict, data: dict, settings: Settings, alert: str = "",
+                        tool_rows: list[dict] | None = None) -> str:
     remaining = round(settings.return_authority_limit - case.get("approved_total", 0.0), 2)
     return SYSTEM_TEMPLATE.format(
         window=settings.return_window_days,
@@ -84,6 +110,7 @@ def build_system_prompt(case: dict, data: dict, settings: Settings, alert: str =
         remaining=remaining,
         tools=_tool_catalogue(),
         case=case_summary(case, data, settings),
+        earlier=earlier_tool_results(tool_rows or []),
         alert=f"\n## ALERT\n{alert}" if alert else "",
     )
 

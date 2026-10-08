@@ -2,7 +2,11 @@
 
 **End-to-end resolution agent** for Cosmic Mart customer support. It doesn't stop at answering questions. It takes each case all the way to the end: it checks order history, approves returns within a set authority limit, books courier pickups, issues refunds and schedules follow-ups. When it hits a limit or detects that the customer is frustrated, it hands the case to a human with the full context, so the customer never has to repeat themselves.
 
-- **LLM:** any OpenAI-compatible endpoint, accessed with the OpenAI Python SDK (`from openai import OpenAI`). Built for a self-hosted **llama.cpp** `llama-server`, with no `--jinja` or native tool calling needed. The agent uses a prompt-based JSON tool protocol. Tested with `qwen3.8-27b`.
+- **LLM:** set `LLM_PROVIDER` in `.env` to choose one of two:
+  - `anthropic`: Claude through the Anthropic SDK, either directly or through a proxy such as Vocareum.
+  - `openai`: any OpenAI-compatible endpoint through the OpenAI SDK, e.g. a self-hosted **llama.cpp** `llama-server` with no `--jinja` needed. Tested with `qwen3.8-27b`.
+
+  Both use the same prompt-based JSON tool protocol, so the agent behaves the same whichever you choose.
 - **Server:** FastAPI, JSON endpoints only. The chatbot front end is built separately.
 - **Memory:** `runtime/memory.xlsx`, one row per message tagged with `conversation_id`. It is a **rolling table of at most 50 rows**: the oldest rows are dropped once it's full.
 
@@ -21,13 +25,40 @@ python run.py
 
 ### `.env`
 
-Three values are needed. `.env` is git-ignored, so never commit it.
+Four values are needed. `.env` is git-ignored, so never commit it.
 
+**Claude (Anthropic API or a proxy such as Vocareum):**
 ```
-OPENAI_API_KEY=<key your llama-server was started with (--api-key); any value if none>
-OPENAI_BASE_URL=http://<your-server>:8080/v1      # must end in /v1
+LLM_PROVIDER=anthropic
+LLM_API_KEY=<your key>
+LLM_BASE_URL=<proxy host root, WITHOUT /v1; leave empty for api.anthropic.com>
+LLM_MODEL=<model ID your provider gives you, e.g. claude-sonnet-5-5>
+```
+If a proxy returns `401` even though the key is correct, add `LLM_AUTH_STYLE=bearer`. This sends the key as `Authorization: Bearer` instead of `x-api-key`.
+
+**Vocareum (tested):** `voc-` keys only work through Vocareum's endpoint, not `api.anthropic.com`. Use `LLM_BASE_URL=https://claude.vocareum.com` and the default `LLM_AUTH_STYLE=api_key`. Your organisation's admin decides which models are enabled. `/health/llm` makes a real request with `LLM_MODEL`, so it confirms whether that model is enabled. In testing:
+
+| Model | Time per message | Notes |
+|---|---|---|
+| `claude-haiku-4-5` | ~6–10 s | Fastest; correct end-to-end flow; shorter handoff summaries |
+| `claude-sonnet-4-5` | Not timed | Enabled; untested end to end |
+| `claude-opus-5-5` | ~10–30 s | Most thorough handoff summaries |
+
+Keep `LLM_MAX_TOKENS` at 2000 or higher. Claude writes detailed handoff summaries, and at 800 they got cut off.
+
+**OpenAI-compatible (e.g. llama.cpp):**
+```
+LLM_PROVIDER=openai
+LLM_API_KEY=<key your llama-server was started with (--api-key); any value if none>
+LLM_BASE_URL=http://<your-server>:8080/v1      # must end in /v1
 LLM_MODEL=<model name your server reports>
 ```
+
+The older names still work as fallbacks: `OPENAI_API_KEY` / `OPENAI_BASE_URL`, or `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL`. If `LLM_PROVIDER` isn't set, it defaults to `openai`.
+
+**How to tell which provider your key is for:** check your provider's sample code.
+- If it uses `from anthropic import Anthropic`, or a URL ending in `/v1/messages`, use `anthropic`.
+- If it uses `from openai import OpenAI`, or `/v1/chat/completions`, use `openai`.
 
 `.env.example` lists every other setting: authority limit, return window, frustration threshold, memory cap, auto-resolve time, ports and CORS.
 
@@ -87,7 +118,7 @@ POST /chat ──► frustration check (deterministic) ──► agent loop (LLM
 | `app/tools.py` | The agent's tools. **All business rules are enforced here in code**, not by the prompt |
 | `app/prompts.py` | System prompt, rebuilt each turn with the live case state |
 | `app/protocol.py` | Parses the model's JSON and tolerates code fences and extra text |
-| `app/llm.py` | OpenAI SDK client. Sends `response_format: json_object` (llama.cpp turns it into a grammar) and falls back automatically if the server rejects it |
+| `app/llm.py` | LLM clients, chosen by `LLM_PROVIDER`: the Anthropic SDK client for Claude, or the OpenAI SDK client. The OpenAI client sends `response_format: json_object` (llama.cpp turns it into a grammar) and falls back automatically if the server rejects it |
 | `app/frustration.py` | Frustration scoring and detection of explicit "I want a human" requests |
 | `app/memory.py` | Excel memory with a rolling row cap |
 | `app/store.py` | Mock order system and case/ticket store (`runtime/state.json`, seeded from `data/seed_data.json`) |
@@ -242,7 +273,10 @@ The scenarios above were also run against a live `qwen3.8-27b` on llama.cpp. In 
 
 | Symptom | Check |
 |---|---|
-| `/health/llm` or `/chat` returns 503 | Is `OPENAI_BASE_URL` reachable, does it end in `/v1`, and is `OPENAI_API_KEY` correct? |
+| `/health/llm` or `/chat` returns 503 | Is `LLM_PROVIDER` right for your key? Is `LLM_BASE_URL` reachable (`openai`: must end in `/v1`; `anthropic`: host root only)? Are `LLM_API_KEY` and `LLM_MODEL` correct? The error detail includes the provider's message |
+| `401` / authentication error from a Claude proxy | Try `LLM_AUTH_STYLE=bearer` |
+| `404` / model not found, or `400 "Model ... is not available for your organization"` | Set `LLM_MODEL` to a model ID your provider has enabled for your key |
+| The server log warns `LLM reply hit LLM_MAX_TOKENS` | Raise `LLM_MAX_TOKENS` (2000 or more is recommended for Claude) |
 | Logged-in customer is asked for their email | Make sure the front end sends `customer_id` with `/chat` |
 | Model replies aren't valid JSON | Keep `LLM_JSON_MODE=true` and lower `LLM_TEMPERATURE`. The server log shows a warning if the server rejects JSON mode |
 | `memory.xlsx` isn't updating | Close it in Excel. Windows locks the file while it's open, and the server catches up on the next message |

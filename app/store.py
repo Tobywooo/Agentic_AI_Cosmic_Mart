@@ -11,12 +11,14 @@ import copy
 import json
 import os
 import threading
+import time
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterator
 
 COLLECTIONS = ("cases", "returns", "pickups", "refunds", "follow_ups", "handoffs")
+SAVE_ATTEMPTS = 6
 
 
 def utcnow() -> datetime:
@@ -98,4 +100,12 @@ class StateStore:
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.state_path.with_suffix(".tmp")
         tmp.write_text(json.dumps(self._data, indent=2), encoding="utf-8")
-        os.replace(tmp, self.state_path)
+        # On Windows, antivirus scanners and OneDrive sync briefly lock freshly written files: retry.
+        for attempt in range(SAVE_ATTEMPTS):
+            try:
+                os.replace(tmp, self.state_path)
+                return
+            except PermissionError:
+                if attempt == SAVE_ATTEMPTS - 1:
+                    raise
+                time.sleep(0.05 * (attempt + 1))
